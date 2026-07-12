@@ -734,11 +734,25 @@ param = initializeParams();
             end
 
             useMedian = strcmp(GUI.hMeanMed.Value, 'Median');
-            [mu, r1dstd] = processPGIXSRadiusBin1D(I, radiusPrep, useMedian, true);
+            [mu, r1dstd, dataCounts] = processPGIXSRadiusBin1D(I, radiusPrep, useMedian, true);
+            sectorCounts = double(radiusPrep.geom_counts(:));
+            coverage = nan(size(mu), 'single');
+            hasSector = sectorCounts > 0;
+            coverage(hasSector) = single(double(dataCounts(hasSector)) ./ sectorCounts(hasSector));
+
+            minCoverage = 0.50;
+            lowCoverage = coverage < minCoverage;
+            mu(lowCoverage) = NaN;
+            r1dstd(lowCoverage) = NaN;
 
             param.pixPlot = radiusPrep.r_axis(:);
             param.Qtr    = radiusPrep.q_axis(:);
             param.r1d    = single(mu);
+            param.r1dCoverage = single(coverage);
+            param.r1dValidCounts = single(dataCounts(:));
+            param.r1dSectorCounts = single(sectorCounts(:));
+            param.r1dMinCoverage = single(minCoverage);
+            param.r1dLowCoverageBins = find(lowCoverage);
             if GUI.hStdI.Value == 1
                 param.r1dstd = single(r1dstd);
             end

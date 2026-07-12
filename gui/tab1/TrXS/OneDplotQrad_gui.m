@@ -163,6 +163,15 @@ function OneDplotQrad_gui(param, parentFig)
     if isfield(param,'r1dstd')
         inputparam.Istd = double(param.r1dstd); 
     end
+    if isfield(param, 'r1dCoverage')
+        inputparam.coverage = double(param.r1dCoverage);
+    end
+    if isfield(param, 'r1dValidCounts')
+        inputparam.validCounts = double(param.r1dValidCounts);
+    end
+    if isfield(param, 'r1dSectorCounts')
+        inputparam.sectorCounts = double(param.r1dSectorCounts);
+    end
 
     % 초기 범위 세팅 (NaN 방어)
     valXmin = min(inputparam.Q1d, [], 'omitnan');
@@ -455,7 +464,13 @@ function OneDplotQrad_gui(param, parentFig)
         else
             data = double([X, Y]);
         end
-        data(isnan(data(:,2)), :) = 0; 
+
+        if isfield(inputparam, 'coverage')
+            data = [data, inputparam.coverage(:)];
+            if isfield(inputparam, 'validCounts') && isfield(inputparam, 'sectorCounts')
+                data = [data, inputparam.validCounts(:), inputparam.sectorCounts(:)];
+            end
+        end
         
         SFN = [param.FileName, '_Radial'];
         selection = uiconfirm(GUI.mainF, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');

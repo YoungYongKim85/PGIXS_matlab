@@ -57,6 +57,7 @@ function run_pgixs_core_tests()
     testNormalization();
     testQBin1D();
     testRadiusBin1D();
+    testSectorAverageDiagnostics();
     testAzimuthal1D();
     testCakeCutGapAndWrap();
     testROIStack();
@@ -943,7 +944,7 @@ function testRadiusBin1D()
     assert(numel(prep.r_axis) == prep.n_bins, 'Radius-bin pixel axis length mismatch.');
 
     data = single(10 * ones(size(qMap)));
-    data(:, 19:23) = NaN;
+    data(:, 1:25) = NaN;
     [zr, zr_std, counts] = processPGIXSRadiusBin1D(data, prep, false, true);
     finiteBins = isfinite(zr);
     assert(any(finiteBins), 'Radius-bin output should retain valid bins around detector gaps.');
@@ -955,6 +956,31 @@ function testRadiusBin1D()
     zrMedian = processPGIXSRadiusBin1D(data, prep, true, false);
     assert(all(abs(double(zrMedian(isfinite(zrMedian))) - 10) < 1e-6), ...
         'Radius-bin median should omit detector-gap NaNs without depressing intensity.');
+
+    minCoverage = 0.5;
+    coverage = double(counts) ./ double(prep.geom_counts);
+    zrFiltered = zr;
+    zrFiltered(coverage < minCoverage) = NaN;
+    assert(any(isnan(zrFiltered) & isfinite(zr)), ...
+        'Coverage filtering should remove under-sampled detector-gap bins.');
+end
+
+function testSectorAverageDiagnostics()
+    [x, y] = meshgrid(single((1:81) - 41), single(-((1:81) - 41)));
+    qMap = sqrt(x.^2 + y.^2);
+    data = single(10 * ones(size(qMap)));
+    data(39:43, :) = NaN;
+
+    report = diagnosePGIXSSectorAverage(data, qMap, [41, 41], [260, 280], false);
+    assert(report.IsValid, 'Sector diagnostic report should be valid.');
+    assert(numel(report.QAxis) == numel(report.Intensity), ...
+        'Sector diagnostic Q and intensity lengths should match.');
+    assert(numel(report.CoverageFraction) == numel(report.Intensity), ...
+        'Sector diagnostic coverage and intensity lengths should match.');
+    assert(isfield(report, 'SectorGeomCounts') && numel(report.SectorGeomCounts) == numel(report.Intensity), ...
+        'Sector diagnostic should report sector geometry counts.');
+    assert(any(report.CoverageFraction < 0.15), ...
+        'Sector diagnostic should expose low-coverage bins at detector gaps.');
 end
 
 function testAzimuthal1D()
@@ -1749,6 +1775,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSQBin1D.m')
         fullfile(repoRoot, 'functions', 'Processing', 'buildPGIXSRadiusBinMap.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSRadiusBin1D.m')
+        fullfile(repoRoot, 'functions', 'Processing', 'diagnosePGIXSSectorAverage.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSROIStack.m')
         fullfile(repoRoot, 'functions', 'Processing', 'applyPGIXSDetectorCorrections.m')
         fullfile(repoRoot, 'functions', 'Processing', 'computePGIXSDetectorCorrectionFactor.m')
