@@ -70,6 +70,12 @@ Treat the automatic SDD as suspicious when:
 - The fitted peak is close to a detector gap, beamstop shadow, or saturated area.
 - The selected standard/order is not the intended ring.
 
+For short SDD AgBH images, especially near or below about `500 mm`, the 1st
+AgBH peak may be hidden near the beam center or absent from the useful detector
+area. The automatic candidate analysis can skip an intense central false peak
+and assign the visible AgBH rings as higher orders, but the candidate table
+should still be inspected before saving.
+
 For publication-grade calibration, verify at least one automatic result with
 manual radial fitting or multiple accepted rings.
 
