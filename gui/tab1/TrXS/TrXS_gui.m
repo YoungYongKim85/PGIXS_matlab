@@ -132,6 +132,11 @@ lbl12 = uilabel(lg, 'Text', '--- [ 1D Plot Process ] ---', 'FontWeight', 'bold',
 lbl12.Layout.Row = 12; lbl12.Layout.Column = [1 6];
 
 % --- Row 13: Median / Std ---
+lblMinCoverage = uilabel(lg, 'Text', 'Min cov:');
+lblMinCoverage.Layout.Row = 13; lblMinCoverage.Layout.Column = 1;
+TX.hMinCoverage = uieditfield(lg, 'numeric', 'Value', 0.80, ...
+    'Limits', [0 1], 'LowerLimitInclusive', 'on', 'UpperLimitInclusive', 'on');
+TX.hMinCoverage.Layout.Row = 13; TX.hMinCoverage.Layout.Column = 2;
 GUI.hMedianB = uicheckbox(lg, 'Text', 'Median', 'Value', 0); 
 GUI.hMedianB.Layout.Row = 13; GUI.hMedianB.Layout.Column = [3 4]; % 시작점은 '0' 위로 맞추되 폭을 넉넉히 줌
 GUI.hStdI = uicheckbox(lg, 'Text', 'Std', 'Value', 0); 
@@ -740,7 +745,11 @@ param = initializeParams();
             hasSector = sectorCounts > 0;
             coverage(hasSector) = single(double(dataCounts(hasSector)) ./ sectorCounts(hasSector));
 
-            minCoverage = 0.80;
+            minCoverage = double(TX.hMinCoverage.Value);
+            if ~isfinite(minCoverage)
+                minCoverage = 0.80;
+            end
+            minCoverage = max(0, min(1, minCoverage));
             lowCoverage = coverage < minCoverage;
             mu(lowCoverage) = NaN;
             r1dstd(lowCoverage) = NaN;
