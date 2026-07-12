@@ -794,6 +794,17 @@ function testSDDCalibrationModules()
     assert(abs(peakCenter - 42) < 0.1, 'Gaussian peak fit center mismatch.');
     assert(numel(fitX) == numel(fitY) && numel(fitX) > 10, ...
         'Gaussian peak fit curve output mismatch.');
+
+    r = (1:220).';
+    profile = 100 * exp(-((r - 70).^2) / (2 * 3^2)) + ...
+        70 * exp(-((r - 140).^2) / (2 * 4^2)) + 2;
+    coverage = ones(size(r));
+    candidateReport = analyzePGIXSSDDCandidates(r, profile, coverage, ...
+        'Silver behenate', 9.5, 0.075, struct('MinCoverage', 0.8));
+    assert(candidateReport.AcceptedCount >= 2, ...
+        'SDD candidate analysis should accept multiple synthetic rings.');
+    assert(isfinite(candidateReport.FinalSDD), ...
+        'SDD candidate analysis should return a finite robust SDD.');
 end
 
 function testNormalizationValue()
@@ -1774,6 +1785,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSSDDFromRing.m')
         fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSRadialProfile.m')
         fullfile(repoRoot, 'functions', 'Calibration', 'fitPGIXSGaussianPeak.m')
+        fullfile(repoRoot, 'functions', 'Calibration', 'analyzePGIXSSDDCandidates.m')
         fullfile(repoRoot, 'functions', 'Qmap', 'Qmaping_tr.m')
         fullfile(repoRoot, 'functions', 'Qmap', 'Qmaping_gi.m')
         fullfile(repoRoot, 'functions', 'Framechange', 'ImageTransformQ_tr.m')

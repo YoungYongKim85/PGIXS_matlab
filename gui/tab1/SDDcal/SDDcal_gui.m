@@ -33,8 +33,14 @@ hAX = uiaxes(grid2D);
 
 panel1D = uipanel(rightGrid, 'Title', '1D Profile Dashboard (Real-time View)', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', 'w');
 panel1D.Layout.Row = 2; panel1D.Layout.Column = 1;
-grid1D = uigridlayout(panel1D, [1 1]); grid1D.Padding = [5 5 5 5];
+grid1D = uigridlayout(panel1D, [2 1]);
+grid1D.RowHeight = {'2x', '1x'};
+grid1D.Padding = [5 5 5 5];
 hAX1D = uiaxes(grid1D); 
+hAX1D.Layout.Row = 1;
+GUI.SDDCandidateTable = uitable(grid1D, 'Data', table(), ...
+    'ColumnName', {'Radius', 'Order', 'Coverage', 'R2', 'SDD', 'Use'});
+GUI.SDDCandidateTable.Layout.Row = 2;
 
 % ============================ List Definitions ===========================
 detectorList = {'Eiger4M', 'MarCCD', 'MX170HS', 'PI-CCD', 'MAR345'};
@@ -217,6 +223,7 @@ param = struct(); param.data = []; param.hROI = [];
         
         close(d); renderImage();
         cla(hAX1D); title(hAX1D, '1D Profile Dashboard Ready');
+        updateSDDCandidateTable(table());
     end
 
     function renderImage(overlayFunc)
@@ -370,56 +377,31 @@ param = struct(); param.data = []; param.hROI = [];
         d.Value = 0.5; d.Message = '3. Analyzing Peaks...';
         
         [r_axis, I_radial, radialReport] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
-        peakCoverage = double(radialReport.CoverageFraction(:));
         minPeakCoverage = 0.80;
-        validIdx = r_axis > 50 & peakCoverage >= minPeakCoverage;
-        [~, locs] = findpeaks(I_radial(validIdx), ...
-            'MinPeakProminence', max(I_radial, [], 'omitnan')*0.03, 'SortStr', 'none'); 
-        
-        if isempty(locs)
+        [~, param.pixelSize, ~] = loadDetectorParams(param.detector);
+        sddCandidateReport = analyzePGIXSSDDCandidates(r_axis, I_radial, ...
+            radialReport.CoverageFraction, hStandard.Value, hEnergy.Value, param.pixelSize, ...
+            struct('MinCoverage', minPeakCoverage));
+        param.SDDPeakCandidates = sddCandidateReport.Candidates;
+        param.SDDDiagnostics = sddCandidateReport;
+        updateSDDCandidateTable(param.SDDPeakCandidates);
+
+        acceptedRows = find(param.SDDPeakCandidates.Accepted);
+        if isempty(acceptedRows)
             close(d);
-            uialert(GUI.main, sprintf('No reliable rings found with coverage >= %.2f.', ...
-                minPeakCoverage), 'Fail');
+            uialert(GUI.main, sprintf('No reliable rings found with coverage >= %.2f. %s', ...
+                minPeakCoverage, sddCandidateReport.Message), 'Fail');
             return;
         end
-        
-        validCandidateIdx = find(validIdx);
-        locs = validCandidateIdx(locs);
-        detectedPixPos = r_axis(locs);
-        detectedCoverage = peakCoverage(locs);
+
         currentSample = hStandard.Value;
-        
-        if strcmp(currentSample, 'SEBS')
-            targetCands = detectedPixPos(detectedPixPos > 80);
-            if ~isempty(targetCands), roughTargetPixel = targetCands(1); else, roughTargetPixel = detectedPixPos(1); end
-            finalOrder = 1;
-        elseif strcmp(currentSample, 'Silver behenate')
-            candidatesPos = detectedPixPos(detectedPixPos > 80);
-            if isempty(candidatesPos), close(d); uialert(GUI.main, 'AgBh: No peaks > 80px found.', 'Fail'); return; end
-            firstCandPos = candidatesPos(1);
-            if length(candidatesPos) >= 2
-                ratio = candidatesPos(2) / firstCandPos;
-                if abs(ratio - 2.0) < 0.2, finalOrder = 1; 
-                    roughTargetPixel = firstCandPos;
-                elseif abs(ratio - 1.5) < 0.2, finalOrder = 2; 
-                    roughTargetPixel = firstCandPos;
-                elseif abs(ratio - 1.33) < 0.2, finalOrder = 3; 
-                    roughTargetPixel = firstCandPos;
-                else, finalOrder = 1; 
-                    roughTargetPixel = firstCandPos; 
-                end
-            else
-                finalOrder = 1; roughTargetPixel = firstCandPos;
-            end
-        else
-            roughTargetPixel = detectedPixPos(1); finalOrder = 1;
-        end
-        param.SDDPeakCandidates = table(detectedPixPos(:), detectedCoverage(:), ...
-            'VariableNames', {'RadiusPixel', 'Coverage'});
+        primaryRow = acceptedRows(1);
+        roughTargetPixel = param.SDDPeakCandidates.RoughRadius(primaryRow);
+        finalOrder = param.SDDPeakCandidates.Order(primaryRow);
         
         d.Value = 0.9; d.Message = 'Gaussian Fitting...';
         [fittedPixel, fittedCurveX, fittedCurveY, fitReport] = ...
-            fitPGIXSGaussianPeak(r_axis, I_radial, roughTargetPixel);
+            fitPGIXSGaussianPeak(r_axis, I_radial, roughTargetPixel, struct('HalfWidth', 30));
         if ~fitReport.Success
             close(d);
             uialert(GUI.main, ['Gaussian fitting failed: ', fitReport.Message], ...
@@ -427,16 +409,25 @@ param = struct(); param.data = []; param.hROI = [];
             return;
         end
         
-        hPix1.Value = fittedPixel; hOrdpix.Value = Order_List{finalOrder};
-        SDDval_Callback();
+        hPix1.Value = fittedPixel;
+        hOrdpix.Value = Order_List{min(finalOrder, numel(Order_List))};
+        param.detector = hDetector.Value;
+        param.standardS = hStandard.Value;
+        param.Energy = hEnergy.Value;
+        param.Pixorder = fittedPixel;
+        param.qval = param.SDDPeakCandidates.QValue(primaryRow);
+        param.SDD = sddCandidateReport.FinalSDD;
+        sddInfo = computePGIXSSDDFromRing(fittedPixel, param.pixelSize, param.Energy, param.qval);
+        param.wavelength = sddInfo.Wavelength;
+        GUI.txtSDD.Text = sprintf('Result: %.2f mm', param.SDD);
         
         cla(hAX1D);
         plot(hAX1D, r_axis, I_radial, 'k', 'LineWidth', 1.5); hold(hAX1D, 'on');
         plot(hAX1D, fittedCurveX, fittedCurveY, 'r-', 'LineWidth', 2.5);
         plot(hAX1D, fittedPixel, interp1(fittedCurveX, fittedCurveY, fittedPixel), 'ro', 'MarkerSize', 10, 'LineWidth', 2);
         if strcmp(currentSample, 'Silver behenate'), xline(hAX1D, 80, '--b', 'Min 80px'); end
-        title(hAX1D, sprintf('Gaussian Fit Verification - %s (Order %d, R^2=%.3f)', ...
-            currentSample, finalOrder, fitReport.RSquare));
+        title(hAX1D, sprintf('Gaussian Fit - %s (Order %d, R^2=%.3f, N=%d)', ...
+            currentSample, finalOrder, fitReport.RSquare, sddCandidateReport.AcceptedCount));
         xlabel(hAX1D, 'Radius (pixel)'); ylabel(hAX1D, 'Intensity'); grid(hAX1D, 'on'); 
         xlim(hAX1D, [fittedPixel - 50, fittedPixel + 50]);
         hold(hAX1D, 'off');
@@ -444,6 +435,11 @@ param = struct(); param.data = []; param.hROI = [];
         if isfinite(fitReport.RSquare) && fitReport.RSquare < 0.85
             uialert(GUI.main, sprintf('Gaussian fit quality is low (R^2=%.3f). Please verify manually.', ...
                 fitReport.RSquare), 'Fit Quality Warning', 'Icon', 'warning');
+        end
+        if sddCandidateReport.AcceptedCount > 1 && isfinite(sddCandidateReport.SDDStd) && ...
+                sddCandidateReport.SDDStd > 5
+            uialert(GUI.main, sprintf('Multi-ring SDD spread is %.2f mm. Please verify manually.', ...
+                sddCandidateReport.SDDStd), 'SDD Spread Warning', 'Icon', 'warning');
         end
     end
 
@@ -488,6 +484,9 @@ param = struct(); param.data = []; param.hROI = [];
         saveData.sdd = param.SDD; 
         saveData.dttypename = param.detector;
         saveData.imgdim = param.dataSize;
+        if isfield(param, 'SDDDiagnostics')
+            saveData.SDDDiagnostics = param.SDDDiagnostics;
+        end
         
         switch param.detector
             case 'Eiger4M', saveData.index_dt = 'eiger4m';
@@ -501,6 +500,11 @@ param = struct(); param.data = []; param.hROI = [];
         % 2. Python 연동을 위한 JSON 데이터 구성 (0-based index 적용)
         jsonData = saveData;
         jsonData.pc = [hYpos.Value - 1, hZpos.Value - 1]; % Center 좌표를 1씩 빼줌
+        if isfield(jsonData, 'SDDDiagnostics') && ...
+                isfield(jsonData.SDDDiagnostics, 'Candidates') && ...
+                istable(jsonData.SDDDiagnostics.Candidates)
+            jsonData.SDDDiagnostics.Candidates = table2struct(jsonData.SDDDiagnostics.Candidates);
+        end
         
         % 3. 저장 파일 경로 설정
         matFile = fullfile(param.Path, [param.FileName, '_standard.mat']);
@@ -579,6 +583,18 @@ param = struct(); param.data = []; param.hROI = [];
         end
     end
 
+    function updateSDDCandidateTable(candidateTable)
+        if isempty(candidateTable) || height(candidateTable) == 0
+            GUI.SDDCandidateTable.Data = table();
+            return;
+        end
+        displayTable = table(candidateTable.FittedRadius, candidateTable.Order, ...
+            candidateTable.Coverage, candidateTable.RSquare, candidateTable.SDD, ...
+            candidateTable.Accepted, 'VariableNames', ...
+            {'Radius', 'Order', 'Coverage', 'R2', 'SDD', 'Use'});
+        GUI.SDDCandidateTable.Data = displayTable;
+    end
+
     function [newCY, newCZ] = refineCenter(data, initCenter)
         [r_axis, I_r] = computePGIXSRadialProfile(data, initCenter);
         validRange = r_axis > 80; if sum(validRange) < 10, validRange = r_axis > 30; end
@@ -588,8 +604,27 @@ param = struct(); param.data = []; param.hROI = [];
         R_map = sqrt((X - initCenter(1)).^2 + (Y - initCenter(2)).^2);
         ringMask = (R_map > (approxRadius - 10)) & (R_map < (approxRadius + 10));
         ringPixels = data(ringMask); coordsX = X(ringMask); coordsY = Y(ringMask);
+        finiteRing = isfinite(ringPixels);
+        ringPixels = ringPixels(finiteRing);
+        coordsX = coordsX(finiteRing);
+        coordsY = coordsY(finiteRing);
+        if numel(ringPixels) < 20
+            newCY = initCenter(1);
+            newCZ = initCenter(2);
+            return;
+        end
         threshold = quantile(ringPixels, 0.80);
+        if ~isfinite(threshold)
+            newCY = initCenter(1);
+            newCZ = initCenter(2);
+            return;
+        end
         validIdx = ringPixels > threshold; finalX = coordsX(validIdx); finalY = coordsY(validIdx);
+        if numel(finalX) < 10
+            newCY = initCenter(1);
+            newCZ = initCenter(2);
+            return;
+        end
         costFunc = @(c) std(sqrt((finalX - c(1)).^2 + (finalY - c(2)).^2));
         options = optimset('Display', 'off', 'TolX', 0.1);
         refinedCenter = fminsearch(costFunc, initCenter, options);

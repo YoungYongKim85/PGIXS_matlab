@@ -9,6 +9,7 @@ For low-token continuation, read `docs/PGIXS_SESSION_STATE.md` first.
 ## MATLAB Stabilization
 
 - Upgrade SDD auto-calibration using `docs/PGIXS_sdd_calibration_upgrade_plan.md`.
+  Use `docs/PGIXS_sdd_calibration_manual.md` for manual GUI verification.
 
 - Run representative end-to-end GUI QA:
   - Use `docs/PGIXS_matlab_release_gate.md` as the release-candidate gate.
