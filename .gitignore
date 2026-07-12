@@ -32,3 +32,4 @@ venv/
 # Local reports generated during ad-hoc runs
 tmp/
 temp/
+tools/bin/
