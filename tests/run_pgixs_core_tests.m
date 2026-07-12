@@ -957,7 +957,7 @@ function testRadiusBin1D()
     assert(all(abs(double(zrMedian(isfinite(zrMedian))) - 10) < 1e-6), ...
         'Radius-bin median should omit detector-gap NaNs without depressing intensity.');
 
-    minCoverage = 0.5;
+    minCoverage = 0.8;
     coverage = double(counts) ./ double(prep.geom_counts);
     zrFiltered = zr;
     zrFiltered(coverage < minCoverage) = NaN;

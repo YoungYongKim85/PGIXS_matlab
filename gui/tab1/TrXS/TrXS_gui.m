@@ -740,7 +740,7 @@ param = initializeParams();
             hasSector = sectorCounts > 0;
             coverage(hasSector) = single(double(dataCounts(hasSector)) ./ sectorCounts(hasSector));
 
-            minCoverage = 0.50;
+            minCoverage = 0.80;
             lowCoverage = coverage < minCoverage;
             mu(lowCoverage) = NaN;
             r1dstd(lowCoverage) = NaN;
