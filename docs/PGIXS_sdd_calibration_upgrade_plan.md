@@ -23,8 +23,8 @@ is unreliable.
 
 4. Improve automatic peak detection.
    - Use standard-sample expected q/order values to predict approximate ring positions.
-   - Reject peaks with low coverage, weak prominence, excessive width, or poor fit quality.
-   - Report candidate peaks instead of silently selecting the first plausible peak.
+   - Reject peaks with weak prominence, excessive width, or poor fit quality.
+   - Show candidate peaks in the GUI instead of only storing them internally.
 
 5. Add multi-ring SDD estimation.
    - For AgBH and other standards, fit multiple ring orders when visible.
@@ -50,4 +50,5 @@ is unreliable.
 ## Current Known Risks
 
 - Current automatic mode still fits one selected ring.
-- Detector gap coverage is calculated but not yet used to reject automatic peaks.
+- Detector gap coverage is used for automatic peak rejection, but candidate
+  details are not yet visible in the GUI.

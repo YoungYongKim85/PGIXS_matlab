@@ -348,11 +348,15 @@ param = struct(); param.data = []; param.hROI = [];
         
         d.Value = 0.3; d.Message = '2. Fine-Tuning Center...';
         try
-            [r_axis, I_radial] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
-            [~, locs] = findpeaks(I_radial(r_axis > 80), 'MinPeakProminence', max(I_radial)*0.05, 'SortStr', 'descend');
+            [r_axis, I_radial, radialReport] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
+            peakCoverage = double(radialReport.CoverageFraction(:));
+            validFine = r_axis > 80 & peakCoverage >= 0.80;
+            [~, locs] = findpeaks(I_radial(validFine), ...
+                'MinPeakProminence', max(I_radial, [], 'omitnan')*0.05, 'SortStr', 'descend');
             
             if ~isempty(locs)
-                targetRadius = r_axis(locs(1) + find(r_axis>80,1)-1);
+                validFineIdx = find(validFine);
+                targetRadius = r_axis(validFineIdx(locs(1)));
                 [finalCY, finalCZ] = fineTuneCenter(param.data, [refinedCY, refinedCZ], targetRadius);
                 hYpos.Value = finalCY; hZpos.Value = finalCZ;
                 renderImage(@() drawCrosshair([finalCY, finalCZ], param.dataSize));
@@ -365,14 +369,24 @@ param = struct(); param.data = []; param.hROI = [];
         
         d.Value = 0.5; d.Message = '3. Analyzing Peaks...';
         
-        [r_axis, I_radial] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
-        validIdx = r_axis > 50; 
-        [~, locs] = findpeaks(I_radial(validIdx), 'MinPeakProminence', max(I_radial)*0.03, 'SortStr', 'none'); 
+        [r_axis, I_radial, radialReport] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
+        peakCoverage = double(radialReport.CoverageFraction(:));
+        minPeakCoverage = 0.80;
+        validIdx = r_axis > 50 & peakCoverage >= minPeakCoverage;
+        [~, locs] = findpeaks(I_radial(validIdx), ...
+            'MinPeakProminence', max(I_radial, [], 'omitnan')*0.03, 'SortStr', 'none'); 
         
-        if isempty(locs), close(d); uialert(GUI.main, 'No rings found.', 'Fail'); return; end
+        if isempty(locs)
+            close(d);
+            uialert(GUI.main, sprintf('No reliable rings found with coverage >= %.2f.', ...
+                minPeakCoverage), 'Fail');
+            return;
+        end
         
-        offset = find(validIdx, 1, 'first') - 1; locs = locs + offset;
+        validCandidateIdx = find(validIdx);
+        locs = validCandidateIdx(locs);
         detectedPixPos = r_axis(locs);
+        detectedCoverage = peakCoverage(locs);
         currentSample = hStandard.Value;
         
         if strcmp(currentSample, 'SEBS')
@@ -400,6 +414,8 @@ param = struct(); param.data = []; param.hROI = [];
         else
             roughTargetPixel = detectedPixPos(1); finalOrder = 1;
         end
+        param.SDDPeakCandidates = table(detectedPixPos(:), detectedCoverage(:), ...
+            'VariableNames', {'RadiusPixel', 'Coverage'});
         
         d.Value = 0.9; d.Message = 'Gaussian Fitting...';
         [fittedPixel, fittedCurveX, fittedCurveY, fitReport] = ...
