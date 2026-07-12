@@ -4,7 +4,7 @@ function [mask, pixel, report] = loadPGIXSDetectorMask(detectorType)
     report = struct('FallbackUsed', false, 'Message', '', 'MaskFile', '');
     switch char(detectorType)
         case 'Eiger4M'
-            [mask, pixel, maskReport] = loadMaskFile('EigerMask.mat', [2164, 2068], 0.075);
+            [mask, pixel, maskReport] = loadMaskFile('EigerMask.mat', [2167, 2070], 0.075);
         case {'MarCCD', 'SX165'}
             [mask, pixel, maskReport] = loadMaskFile('SX165mask.mat', [2048, 2048], 0.079);
         case 'MX170HS'

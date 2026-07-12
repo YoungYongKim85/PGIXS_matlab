@@ -136,6 +136,7 @@ function testImageIO(repoRoot)
 
     [mask, pixel, maskReport] = loadPGIXSDetectorMask('Eiger4M');
     assert(isa(mask, 'single'), 'Mask should be single precision.');
+    assert(isequal(size(mask), [2167, 2070]), 'Unexpected Eiger4M mask/image size.');
     assert(abs(pixel - 0.075) < 1e-12, 'Unexpected Eiger4M pixel size.');
     assert(isfield(maskReport, 'FallbackUsed'), 'Mask loader should return fallback report metadata.');
     masked = applyPGIXSMask(single(ones(size(mask))), mask);
