@@ -44,6 +44,7 @@ function run_pgixs_core_tests()
     testCalculationInputParsers();
     testCrystalLatticeOverrides();
     testRadialPixelAxis();
+    testSDDCalibrationModules();
     testNormalizationValue();
     testCounterNormalization();
     testScaleFactorSanitizer();
@@ -761,6 +762,38 @@ function testRadialPixelAxis()
     assert(report.FallbackUsed, 'Invalid wavelength should use fallback.');
     assert(isequal(fallbackAxis, single(1:numel(qAxis))), ...
         'Radial pixel-axis fallback should use bin indices.');
+end
+
+function testSDDCalibrationModules()
+    qAg = getPGIXSStandardSampleQ('Silver behenate', 2);
+    assert(abs(qAg - 0.2104) < 1e-12, 'Silver behenate q/order lookup mismatch.');
+
+    [sdd, report] = computePGIXSSDDFromRing(200, 0.075, 9.5, 0.1052);
+    expectedWavelength = 4.1357e-15 * 2.99792458e8 / (9.5e3) * 1e10;
+    expectedTwoTheta = 2 * asind(expectedWavelength * 0.1052 / (4 * pi));
+    expectedSDD = 200 * 0.075 / tand(expectedTwoTheta);
+    assert(abs(report.Wavelength - expectedWavelength) < 1e-12, ...
+        'SDD wavelength report mismatch.');
+    assert(abs(sdd - expectedSDD) < 1e-10, 'SDD ring calculation mismatch.');
+
+    data = single(ones(7, 7));
+    data(4, 6) = NaN;
+    [rAxis, profile, radialReport] = computePGIXSRadialProfile(data, [4, 4], struct('Smooth', false));
+    assert(isa(profile, 'double') && numel(rAxis) == numel(profile), ...
+        'Radial profile output shape mismatch.');
+    assert(numel(radialReport.ValidCounts) == numel(profile), ...
+        'Radial profile count vector mismatch.');
+    assert(any(radialReport.CoverageFraction < 1), ...
+        'Radial profile should report reduced coverage for NaN pixels.');
+
+    x = (1:100).';
+    y = 20 * exp(-((x - 42).^2) / (2 * 4^2)) + 3;
+    [peakCenter, fitX, fitY, fitReport] = fitPGIXSGaussianPeak(x, y, 40);
+    assert(fitReport.Success && fitReport.RSquare > 0.99, ...
+        'Gaussian peak fit should report high-quality success.');
+    assert(abs(peakCenter - 42) < 0.1, 'Gaussian peak fit center mismatch.');
+    assert(numel(fitX) == numel(fitY) && numel(fitX) > 10, ...
+        'Gaussian peak fit curve output mismatch.');
 end
 
 function testNormalizationValue()
@@ -1737,6 +1770,10 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Correction', 'Polarization.m')
         fullfile(repoRoot, 'functions', 'Correction', 'Eff_correc.m')
         fullfile(repoRoot, 'functions', 'Correction', 'Eff_correc2.m')
+        fullfile(repoRoot, 'functions', 'Calibration', 'getPGIXSStandardSampleQ.m')
+        fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSSDDFromRing.m')
+        fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSRadialProfile.m')
+        fullfile(repoRoot, 'functions', 'Calibration', 'fitPGIXSGaussianPeak.m')
         fullfile(repoRoot, 'functions', 'Qmap', 'Qmaping_tr.m')
         fullfile(repoRoot, 'functions', 'Qmap', 'Qmaping_gi.m')
         fullfile(repoRoot, 'functions', 'Framechange', 'ImageTransformQ_tr.m')

@@ -324,7 +324,7 @@ param = struct(); param.data = []; param.hROI = [];
 
     function CircularAve_Callback(~,~)
         if isempty(param.data), return; end
-        [r_ax, I_rad] = computeRadialProfile(param.data, [hYpos.Value, hZpos.Value], []);
+        [r_ax, I_rad] = computePGIXSRadialProfile(param.data, [hYpos.Value, hZpos.Value]);
         data1d = [r_ax, I_rad]; % N x 2 배열로 패키징
         
         % 대시보드 렌더링 (참고용)
@@ -348,7 +348,7 @@ param = struct(); param.data = []; param.hROI = [];
         
         d.Value = 0.3; d.Message = '2. Fine-Tuning Center...';
         try
-            [r_axis, I_radial] = computeRadialProfile(param.data, [refinedCY, refinedCZ], []);
+            [r_axis, I_radial] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
             [~, locs] = findpeaks(I_radial(r_axis > 80), 'MinPeakProminence', max(I_radial)*0.05, 'SortStr', 'descend');
             
             if ~isempty(locs)
@@ -365,7 +365,7 @@ param = struct(); param.data = []; param.hROI = [];
         
         d.Value = 0.5; d.Message = '3. Analyzing Peaks...';
         
-        [r_axis, I_radial] = computeRadialProfile(param.data, [refinedCY, refinedCZ], []);
+        [r_axis, I_radial] = computePGIXSRadialProfile(param.data, [refinedCY, refinedCZ]);
         validIdx = r_axis > 50; 
         [~, locs] = findpeaks(I_radial(validIdx), 'MinPeakProminence', max(I_radial)*0.03, 'SortStr', 'none'); 
         
@@ -402,7 +402,14 @@ param = struct(); param.data = []; param.hROI = [];
         end
         
         d.Value = 0.9; d.Message = 'Gaussian Fitting...';
-        [fittedPixel, fittedCurveX, fittedCurveY] = fitGaussianPeak(r_axis, I_radial, roughTargetPixel);
+        [fittedPixel, fittedCurveX, fittedCurveY, fitReport] = ...
+            fitPGIXSGaussianPeak(r_axis, I_radial, roughTargetPixel);
+        if ~fitReport.Success
+            close(d);
+            uialert(GUI.main, ['Gaussian fitting failed: ', fitReport.Message], ...
+                'Fit Failed', 'Icon', 'error');
+            return;
+        end
         
         hPix1.Value = fittedPixel; hOrdpix.Value = Order_List{finalOrder};
         SDDval_Callback();
@@ -412,11 +419,16 @@ param = struct(); param.data = []; param.hROI = [];
         plot(hAX1D, fittedCurveX, fittedCurveY, 'r-', 'LineWidth', 2.5);
         plot(hAX1D, fittedPixel, interp1(fittedCurveX, fittedCurveY, fittedPixel), 'ro', 'MarkerSize', 10, 'LineWidth', 2);
         if strcmp(currentSample, 'Silver behenate'), xline(hAX1D, 80, '--b', 'Min 80px'); end
-        title(hAX1D, ['Gaussian Fit Verification - ' currentSample ' (Order ' num2str(finalOrder) ')']);
+        title(hAX1D, sprintf('Gaussian Fit Verification - %s (Order %d, R^2=%.3f)', ...
+            currentSample, finalOrder, fitReport.RSquare));
         xlabel(hAX1D, 'Radius (pixel)'); ylabel(hAX1D, 'Intensity'); grid(hAX1D, 'on'); 
         xlim(hAX1D, [fittedPixel - 50, fittedPixel + 50]);
         hold(hAX1D, 'off');
         close(d);
+        if isfinite(fitReport.RSquare) && fitReport.RSquare < 0.85
+            uialert(GUI.main, sprintf('Gaussian fit quality is low (R^2=%.3f). Please verify manually.', ...
+                fitReport.RSquare), 'Fit Quality Warning', 'Icon', 'warning');
+        end
     end
 
     function SDDval_Callback(~,~)
@@ -431,11 +443,10 @@ param = struct(); param.data = []; param.hROI = [];
                 'Unknown order selection "%s"; using first order.', hOrdpix.Value);
         end
         [~, param.pixelSize, ~] = loadDetectorParams(param.detector);
-        param.qval = getStandardSampleQ(param.standardS, orderIdx);
-        h_const = 4.1357e-15; c_const = 2.99792458e8; 
-        param.wavelength = h_const * c_const / (param.Energy * 1e3) * 1e10; 
-        TT = 2 * asind(param.wavelength * param.qval / (4 * pi));
-        param.SDD = param.Pixorder * param.pixelSize / tand(TT); % mm
+        param.qval = getPGIXSStandardSampleQ(param.standardS, orderIdx);
+        [param.SDD, sddReport] = computePGIXSSDDFromRing( ...
+            param.Pixorder, param.pixelSize, param.Energy, param.qval);
+        param.wavelength = sddReport.Wavelength;
         GUI.txtSDD.Text = ['Result: ', sprintf('%.2f', param.SDD), ' mm'];
     end
 
@@ -552,32 +563,8 @@ param = struct(); param.data = []; param.hROI = [];
         end
     end
 
-    function qval = getStandardSampleQ(sampleName, order)
-        baseQ = 0;
-        switch sampleName
-            case 'SEBS', baseQ = 0.01916;
-            case 'Silver behenate', baseQ = 0.1052;
-            case 'Mesoporous Silica', baseQ = 0.059264;
-            case 'Sucrose', baseQ = 0.5933;
-        end
-        qval = baseQ * order;
-    end
-
-    function [r_axis, I_radial] = computeRadialProfile(data, center, ~)
-        [dimY, dimX] = size(data); [X, Y] = meshgrid(1:dimX, 1:dimY);
-        R = sqrt((X - center(1)).^2 + (Y - center(2)).^2); R = R(:); I = data(:);
-        valid = ~isnan(I) & ~isnan(R); R = R(valid); I = I(valid);
-        if isempty(R), r_axis = []; I_radial = []; return; end
-        maxR = ceil(max(R)); edges = 0:1:maxR;
-        [~, ~, binIdx] = histcounts(R, edges); mask = binIdx > 0; b = binIdx(mask); v = I(mask);
-        nbins = length(edges) - 1; I_sum = accumarray(b, v, [nbins, 1]); count = accumarray(b, 1, [nbins, 1]);
-        I_radial = I_sum ./ count; nanIdx = isnan(I_radial) | (count == 0); x_indices = (1:length(I_radial))';
-        if any(nanIdx) && sum(~nanIdx) > 2, I_radial(nanIdx) = interp1(x_indices(~nanIdx), I_radial(~nanIdx), x_indices(nanIdx), 'linear'); end
-        r_axis = (edges(1:end-1) + 0.5)'; I_radial = smoothdata(I_radial, 'gaussian', 5);
-    end
-
     function [newCY, newCZ] = refineCenter(data, initCenter)
-        [r_axis, I_r] = computeRadialProfile(data, initCenter, []);
+        [r_axis, I_r] = computePGIXSRadialProfile(data, initCenter);
         validRange = r_axis > 80; if sum(validRange) < 10, validRange = r_axis > 30; end
         [~, maxIdx] = max(I_r(validRange)); maxIdx = maxIdx + find(validRange, 1) - 1;
         approxRadius = r_axis(maxIdx);
@@ -593,17 +580,6 @@ param = struct(); param.data = []; param.hROI = [];
         newCY = refinedCenter(1); newCZ = refinedCenter(2);
     end
 
-    function [center, fitX, fitY] = fitGaussianPeak(x, y, roughCenter)
-        idx = (x >= (roughCenter - roughCenter/2)) & (x <= (roughCenter + roughCenter/2));
-        x_roi = double(x(idx)'); y_roi = double(y(idx)');
-        if length(x_roi) < 4, center = roughCenter; fitX = x_roi; fitY = y_roi; return; end
-        ft = fittype('a*exp(-((x-b)^2)/(2*c^2)) + d'); amp_guess = max(y_roi) - min(y_roi);
-        opts = fitoptions(ft); opts.StartPoint = [amp_guess, roughCenter, 2.0, min(y_roi)];
-        opts.Lower = [0, min(x_roi), 0.1, 0]; opts.Upper = [Inf, max(x_roi), 50, max(y_roi)];
-        try [f, ~] = fit(x_roi, y_roi, ft, opts); center = f.b; fitX = linspace(min(x_roi), max(x_roi), 100); fitY = f(fitX);
-        catch, center = roughCenter; fitX = x_roi; fitY = y_roi; end
-    end
-
     function [finalCY, finalCZ] = fineTuneCenter(data, initCenter, targetRadius)
         % iCol: column 인덱스 (Y 방향, 가로축), iRow: row 인덱스 (Z 방향, 세로축)
         curCY = initCenter(1); curCZ = initCenter(2); [H, W] = size(data);
@@ -615,10 +591,10 @@ param = struct(); param.data = []; param.hROI = [];
             idxL = iCol - searchRange; idxL = idxL(idxL > 0); profL = data(iRow, idxL);
             idxD = iRow + searchRange; idxD = idxD(idxD <= H); profD = data(idxD, iCol); 
             idxU = iRow - searchRange; idxU = idxU(idxU > 0); profU = data(idxU, iCol);
-            try [pR, ~, ~] = fitGaussianPeak(searchRange, profR, targetRadius); catch, pR = NaN; end
-            try [pL, ~, ~] = fitGaussianPeak(searchRange, profL, targetRadius); catch, pL = NaN; end
-            try [pD, ~, ~] = fitGaussianPeak(searchRange, profD', targetRadius); catch, pD = NaN; end
-            try [pU, ~, ~] = fitGaussianPeak(searchRange, profU', targetRadius); catch, pU = NaN; end
+            try [pR, ~, ~] = fitPGIXSGaussianPeak(searchRange, profR, targetRadius); catch, pR = NaN; end
+            try [pL, ~, ~] = fitPGIXSGaussianPeak(searchRange, profL, targetRadius); catch, pL = NaN; end
+            try [pD, ~, ~] = fitPGIXSGaussianPeak(searchRange, profD', targetRadius); catch, pD = NaN; end
+            try [pU, ~, ~] = fitPGIXSGaussianPeak(searchRange, profU', targetRadius); catch, pU = NaN; end
             shiftY = 0; shiftZ = 0; countY = 0; countZ = 0;
             if ~isnan(pR) && ~isnan(pL), shiftY = (pR - pL) / 2; countY = 1; end
             if ~isnan(pD) && ~isnan(pU), shiftZ = (pD - pU) / 2; countZ = 1; end
