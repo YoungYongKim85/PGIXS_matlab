@@ -1,0 +1,34 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# MATLAB local/session artifacts
+*.asv
+*.autosave
+*.m~
+slprj/
+*.mex*
+*.log
+.matlab_pref_tmp/
+.matlab_pref_test/
+
+# Large/local test datasets are kept outside Git.
+test/
+manual_qa_samples/*.mat
+
+# Python local artifacts for future ports
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local reports generated during ad-hoc runs
+tmp/
+temp/

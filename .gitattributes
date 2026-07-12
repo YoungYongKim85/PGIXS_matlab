@@ -1,0 +1,18 @@
+# Keep source text portable across Windows and Linux.
+*.m text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.csv text
+*.dat text
+*.txt text
+
+# Scientific/image fixtures are binary.
+*.mat binary
+*.h5 binary
+*.tif binary
+*.tiff binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.fig binary
