@@ -13,9 +13,7 @@ is unreliable.
 ## Work Order
 
 1. Audit and align image loading behavior.
-   - Compare `SDDcal_gui` H5 loading with shared `loadPGIXSImageFile`.
-   - Confirm whether the current H5 transpose is still required.
-   - Make SDD calibration use the same orientation convention as Tab1 TrXS/GIXS.
+   - Confirm shared loading behavior in `SDDcal_gui` manually on a real image.
 
 2. Fix detector metadata consistency.
    - Ensure detector pixel size comes from one shared source.
@@ -66,8 +64,6 @@ is unreliable.
 
 ## Current Known Risks
 
-- Current H5 loading in `SDDcal_gui` manually transposes data and may diverge
-  from shared Tab1 loading behavior.
 - Current radial profile fills missing bins by interpolation before fitting.
 - Current automatic mode fits one selected ring and does not expose fit quality.
 - Detector gap coverage is not considered during SDD radial averaging.

@@ -193,16 +193,7 @@ param = struct(); param.data = []; param.hROI = [];
         
         d = uiprogressdlg(GUI.main, 'Title', 'Loading Data', 'Indeterminate', 'on');
         try
-            switch lower(FileFormat)
-                case '.h5'
-                    info = h5info(XSImage); targetPath = findH5DataPath(info);
-                    if isempty(targetPath), error('No image array found in H5.'); end
-                    tmp = squeeze(h5read(XSImage, targetPath));
-                    if ~ismatrix(tmp), tmp = tmp(:,:,1); end
-                    param.data = single(tmp');
-                otherwise
-                    param.data = loadPGIXSImageFile(XSImage, FileFormat);
-            end
+            param.data = loadPGIXSImageFile(XSImage, FileFormat);
         catch err
             close(d); uialert(GUI.main, ['Load Error: ' err.message], 'Error'); return; 
         end
@@ -546,14 +537,6 @@ param = struct(); param.data = []; param.hROI = [];
     end
 
     % ====================== HELPER FUNCTIONS =================================
-    function path = findH5DataPath(info)
-        path = '';
-        for i = 1:length(info.Datasets)
-            if length(info.Datasets(i).Dataspace.Size) >= 2, path = [info.Name '/' info.Datasets(i).Name]; path = strrep(path, '//', '/'); return; end
-        end
-        for i = 1:length(info.Groups), path = findH5DataPath(info.Groups(i)); if ~isempty(path), return; end; end
-    end
-
     function [Mask, pixel, dimY] = loadDetectorParams(detectorType)
         switch detectorType
             case 'Eiger4M', dimY = 2167;
