@@ -68,6 +68,7 @@ function run_pgixs_core_tests()
     testProcessing();
     testQMappingAndCorrections();
     testDetectorCorrectionFactor();
+    testGridremover();
     test2DInfoRoundTrip();
     test2DInfoWriter();
     testManualQASampleWriter();
@@ -1329,6 +1330,35 @@ function testDetectorCorrectionFactor()
     assert(didThrow, 'Detector correction factor should validate required fields.');
 end
 
+function testGridremover()
+    rowGroups = {256:259, 807:810, 1358:1361, 1909:1912};
+    colGroups = {256:259, 514:517, 772:775, 1296:1299, 1554:1557, 1812:1815};
+
+    data = ones(2167, 2070, 'single');
+    for ii = 1:numel(rowGroups)
+        data(rowGroups{ii}, :) = single(0.8);
+    end
+    for ii = 1:numel(colGroups)
+        data(:, colGroups{ii}) = single(0.8);
+    end
+
+    [out, report] = Gridremover(data);
+    assert(report.Applied, 'Gridremover should apply on Eiger-sized data.');
+    assert(all(isfinite(out(:))), 'Gridremover should not introduce NaNs on valid data.');
+    assert(abs(double(mean(out(rowGroups{1}, :), 'all', 'omitnan')) - 1) < 1e-6, ...
+        'Gridremover should restore attenuated grid-line intensity.');
+
+    smallData = ones(1042, 1042, 'single');
+    [smallOut, smallReport] = Gridremover(smallData);
+    assert(~smallReport.Applied, 'Gridremover should skip unsupported detector sizes.');
+    assert(isequal(smallOut, smallData), 'Skipped Gridremover output should remain unchanged.');
+
+    zeroData = zeros(2167, 2070, 'single');
+    [zeroOut, zeroReport] = Gridremover(zeroData);
+    assert(~zeroReport.Applied, 'Gridremover should skip all-zero images.');
+    assert(~any(isnan(zeroOut(:))), 'Gridremover should not convert all-zero grid lines to NaN.');
+end
+
 function test2DInfoRoundTrip()
     p = struct();
     p.data = single(ones(4, 5));
@@ -1826,6 +1856,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Correction', 'Polarization.m')
         fullfile(repoRoot, 'functions', 'Correction', 'Eff_correc.m')
         fullfile(repoRoot, 'functions', 'Correction', 'Eff_correc2.m')
+        fullfile(repoRoot, 'functions', 'Correction', 'Gridremover.m')
         fullfile(repoRoot, 'functions', 'Calibration', 'getPGIXSStandardSampleQ.m')
         fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSSDDFromRing.m')
         fullfile(repoRoot, 'functions', 'Calibration', 'computePGIXSRadialProfile.m')

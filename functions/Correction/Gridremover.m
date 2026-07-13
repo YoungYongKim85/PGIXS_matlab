@@ -1,63 +1,79 @@
-% 2d data grid remove function
-% This is for Eiger detector
-function out = Gridremover(data)
+function [out, report] = Gridremover(data)
+% Gridremover  Correct Eiger grid-line intensity artifacts.
+%
+% This function is intentionally conservative. Unsupported detector sizes or
+% frames without enough valid reference pixels are returned unchanged.
 
-% Manually assigned position
-hordata = [255,260,513,518,771,776,1295,1300,1553,1558,1811,1816];
-horgap = [256,259,514,517,772,775,1296,1299,1554,1557,1812,1815];
+    report = struct( ...
+        'Applied', false, ...
+        'Message', '', ...
+        'MedianRatio', NaN, ...
+        'CorrectionFactor', NaN);
+    out = data;
 
-verdata = [255,260,806,811,1357,1362,1908,1913];
-vergap = [256,259,807,810,1358,1361,1909,1912];
+    if ~isnumeric(data) || ndims(data) ~= 2
+        report.Message = 'Gridremover expects a 2D numeric detector image.';
+        return;
+    end
 
-% make 1 dimensional
-oridatah = data(:,hordata);
-gapdatah = data(:,horgap);
+    % Manually assigned Eiger grid-line positions.
+    hordata = [255, 260, 513, 518, 771, 776, 1295, 1300, 1553, 1558, 1811, 1816];
+    horgap = [256, 259, 514, 517, 772, 775, 1296, 1299, 1554, 1557, 1812, 1815];
+    verdata = [255, 260, 806, 811, 1357, 1362, 1908, 1913];
+    vergap = [256, 259, 807, 810, 1358, 1361, 1909, 1912];
 
-oridatav = data(verdata,:);
-gapdatav = data(vergap,:);
+    rowGroups = {256:259, 807:810, 1358:1361, 1909:1912};
+    colGroups = {256:259, 514:517, 772:775, 1296:1299, 1554:1557, 1812:1815};
 
-oridata = cat(1,oridatah(:),oridatav(:));
-gapdata = cat(1,gapdatah(:),gapdatav(:));
+    dataSize = size(data);
+    requiredRows = max([verdata, vergap, cellfun(@max, rowGroups)]);
+    requiredCols = max([hordata, horgap, cellfun(@max, colGroups)]);
+    if dataSize(1) < requiredRows || dataSize(2) < requiredCols
+        report.Message = sprintf('Detector image size %dx%d is too small for Eiger grid removal.', dataSize(1), dataSize(2));
+        return;
+    end
 
-% remove 0 value position
-delpos = find(oridata == 0);
-oridata(delpos) = [];
-gapdata(delpos) = [];
+    oridatah = data(:, hordata);
+    gapdatah = data(:, horgap);
+    oridatav = data(verdata, :);
+    gapdatav = data(vergap, :);
 
-delpos = find(gapdata == 0);
-oridata(delpos) = [];
-gapdata(delpos) = [];
+    oridata = double(cat(1, oridatah(:), oridatav(:)));
+    gapdata = double(cat(1, gapdatah(:), gapdatav(:)));
 
-% calculate Ratio between Igap and Iori
-R = gapdata./oridata;
+    valid = isfinite(oridata) & isfinite(gapdata) & oridata ~= 0 & gapdata ~= 0;
+    if ~any(valid)
+        report.Message = 'No valid nonzero reference pixels for Eiger grid removal.';
+        return;
+    end
 
-% meanR = mean(R);
-meanR = median(R); % using median is better
+    ratio = gapdata(valid) ./ oridata(valid);
+    ratio = ratio(isfinite(ratio) & ratio > 0);
+    if isempty(ratio)
+        report.Message = 'No valid positive grid/reference ratio for Eiger grid removal.';
+        return;
+    end
 
-% making mapping for correction
-dataSize = size(data);
-Map = zeros(dataSize);
-row1 = 256:259;
-row2 = 807:810;
-row3 = 1358:1361;
-row4 = 1909:1912;
-col1 = 256:259;
-col2 = 514:517;
-col3 = 772:775;
-col4 = 1296:1299;
-col5 = 1554:1557;
-col6 = 1812:1815;
-Map([row1,row2,row3,row4],:) = 1;
-Map(:,[col1,col2,col3,col4,col5,col6]) = 1;
+    medianRatio = median(ratio, 'omitnan');
+    if ~isfinite(medianRatio) || medianRatio <= 0
+        report.Message = 'Invalid Eiger grid correction ratio.';
+        return;
+    end
 
-Cormap = find(Map == 1);
+    correctionFactor = min(max(1 ./ medianRatio, 0.25), 4);
 
-vr = abs(meanR-1);
-out = data;
-if meanR >= 1
-    out(Cormap) = out(Cormap) .* (1-vr);
-else
-    out(Cormap) = out(Cormap) .* (1+vr);
-end
+    gridMask = false(dataSize);
+    for ii = 1:numel(rowGroups)
+        gridMask(rowGroups{ii}, :) = true;
+    end
+    for ii = 1:numel(colGroups)
+        gridMask(:, colGroups{ii}) = true;
+    end
 
+    out = data;
+    out(gridMask) = out(gridMask) .* cast(correctionFactor, 'like', out);
+    report.Applied = true;
+    report.MedianRatio = medianRatio;
+    report.CorrectionFactor = correctionFactor;
+    report.Message = sprintf('Applied Eiger grid correction factor %.6g.', correctionFactor);
 end

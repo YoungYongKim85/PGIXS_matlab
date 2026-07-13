@@ -602,7 +602,17 @@ param = initializeParams();
     function GridRemove_Callback(~,~)
         if isempty(param.data), uialert(GUI.main, 'Please load data first!', 'Error'); return; end
         Nanpos = find(isnan(param.data)); param.data(Nanpos) = 0;
-        try param.data = Gridremover(param.data); param.data(Nanpos) = nan; renderImage(); catch, uialert(GUI.main, 'Gridremover function missing or error.','Error'); end
+        try
+            [param.data, gridReport] = Gridremover(param.data);
+            param.data(Nanpos) = nan;
+            renderImage();
+            if ~gridReport.Applied
+                uialert(GUI.main, gridReport.Message, 'Grid Remove Skipped', 'Icon', 'warning');
+            end
+        catch ME
+            param.data(Nanpos) = nan;
+            uialert(GUI.main, ['Grid remover error: ', ME.message], 'Error');
+        end
     end
 
     function Correction_Callback(~,~)

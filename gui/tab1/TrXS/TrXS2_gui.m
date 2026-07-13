@@ -653,7 +653,12 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         for ii = 1:N
             D = param.Stack(:,:,ii); nmask = isnan(D); D(nmask)=0;
             try
-                D = Gridremover(D);
+                [D, gridReport] = Gridremover(D);
+                if ~gridReport.Applied
+                    nFailedFrames = nFailedFrames + 1;
+                    failedFrames(nFailedFrames) = ii;
+                    if isempty(failMessage), failMessage = gridReport.Message; end
+                end
             catch ME
                 nFailedFrames = nFailedFrames + 1;
                 failedFrames(nFailedFrames) = ii;
