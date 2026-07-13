@@ -63,6 +63,7 @@ function run_pgixs_core_tests()
     testCakeCutGapAndWrap();
     testROIStack();
     testGIXSLinecutStack();
+    testTrXSLinecutGapAlignment();
     testGIXSAzimuthalStack();
     testProcessing();
     testQMappingAndCorrections();
@@ -1181,6 +1182,28 @@ function testGIXSLinecutStack()
     assert(all(isnan(outFirstNaN(:, 2))), 'GIXS first failed frame should remain NaN.');
 end
 
+function testTrXSLinecutGapAlignment()
+    p = struct();
+    p.data = ones(20, 20, 'single');
+    p.bpos = single([10, 10]);
+    p.ang = single(0);
+    [X, Y] = meshgrid(single(1:20), single(1:20));
+    p.Q = sqrt((X - p.bpos(1)).^2 + (Y - p.bpos(2)).^2);
+
+    img1 = ones(20, 20, 'single');
+    img2 = 2 * ones(20, 20, 'single');
+    img1(:, 5) = NaN;
+    img2(:, 6) = NaN;
+
+    [~, line1] = Anglecut1d(p, img1);
+    [~, line2] = Anglecut1d(p, img2);
+    aligned2 = alignPGIXSLinecutToReference(line2, line1(:, 1));
+
+    assert(size(line1, 1) == size(line2, 1), 'TrXS linecut should preserve axis length across gap locations.');
+    assert(numel(aligned2) == size(line1, 1), 'TrXS aligned linecut length mismatch.');
+    assert(any(isnan(line1(:, 3))), 'TrXS linecut detector gap should remain as NaN intensity.');
+end
+
 function testGIXSAzimuthalStack()
     stackData = single(cat(3, ones(8, 8), 2 * ones(8, 8)));
     opts = struct();
@@ -1844,6 +1867,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSAzimuthal1D.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processGIXSAzimuthalStack.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processGIXSLinecutStack.m')
+        fullfile(repoRoot, 'functions', 'Processing', 'alignPGIXSLinecutToReference.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSQBin1D.m')
         fullfile(repoRoot, 'functions', 'Processing', 'buildPGIXSRadiusBinMap.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSRadiusBin1D.m')

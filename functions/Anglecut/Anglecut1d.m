@@ -69,7 +69,9 @@ function [linepos, line1d] = Anglecut1d(param, imgData)
     linepos(1) = x0; linepos(2) = xq(end);
     linepos(3) = y0; linepos(4) = yq(end);
     
-    valid = ~isnan(zq);
+    % Keep detector gaps as NaN intensity values instead of dropping rows.
+    % Series line cuts depend on a stable axis length across frames.
+    valid = isfinite(dq) & isfinite(qq);
     dq = dq(valid); qq = qq(valid); zq = zq(valid);
     
     line1d = zeros(length(dq), 3, 'single');

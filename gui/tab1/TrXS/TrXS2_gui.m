@@ -957,6 +957,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         try
             % 새로 구현된 Anglecut1d를 직접 호출
             [~, ref_line] = Anglecut1d(p_worker, Stack_local(:,:,1));
+            ref_distance = ref_line(:,1);
             Q1d_new = ref_line(:,2); 
             
             data1dstack_temp = zeros(length(Q1d_new), N+1, 'single'); 
@@ -966,7 +967,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
                 d.Indeterminate = 'on'; d.Message = sprintf('Line cut (parallel): %d frames...', N);
                 parfor ii = 1:N
                     [~, line1d] = Anglecut1d(p_worker, Stack_local(:,:,ii)); 
-                    data1dstack_temp(:,ii+1) = single(line1d(:,3)); 
+                    data1dstack_temp(:,ii+1) = alignPGIXSLinecutToReference(line1d, ref_distance);
                 end
             else
                 d.Indeterminate = 'off'; 
@@ -976,14 +977,15 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
                         drawnow limitrate;
                     end
                     [~, line1d] = Anglecut1d(p_worker, Stack_local(:,:,ii)); 
-                    data1dstack_temp(:,ii+1) = single(line1d(:,3)); 
+                    data1dstack_temp(:,ii+1) = alignPGIXSLinecutToReference(line1d, ref_distance);
                 end
             end
             param.data1dstack = data1dstack_temp;
+            param.linecutDistanceAxis = single(ref_distance);
             
             if isfield(param,'bkg') && ~isempty(param.bkg)
                 [~, line1d] = Anglecut1d(p_worker, param.bkg); 
-                param.bkg1d = single(line1d(:,3)); 
+                param.bkg1d = alignPGIXSLinecutToReference(line1d, ref_distance); 
             end
             
             Auto.Met = AUTO_LINECUT; 
@@ -1605,12 +1607,15 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
     function updateLineCut(Stack_new, Nnew, p)
         if ~isfield(p, 'data1dstack'), return; end
         len = length(p.data1dstack(:,1)); new_res = zeros(len, Nnew, 'single'); 
+        if isfield(p, 'linecutDistanceAxis') && numel(p.linecutDistanceAxis) == len
+            ref_distance = p.linecutDistanceAxis(:);
+        else
+            ref_distance = p.data1dstack(:, 1);
+        end
         p_worker = p; if isfield(p_worker, 'Stack'), p_worker = rmfield(p_worker, 'Stack'); end
         for ii = 1:Nnew
             [~, line1d] = Anglecut1d(p_worker, Stack_new(:,:,ii)); 
-            if size(line1d,1) == len % 데이터 무결성 보호
-                new_res(:, ii) = single(line1d(:,3)); 
-            end
+            new_res(:, ii) = alignPGIXSLinecutToReference(line1d, ref_distance);
         end
         param.data1dstack = cat(2, param.data1dstack, new_res); Plot1dseries_Callback;
     end
