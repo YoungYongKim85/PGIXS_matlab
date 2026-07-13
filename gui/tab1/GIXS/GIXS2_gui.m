@@ -2057,6 +2057,10 @@ btnSvX4.Layout.Column = 4;
 
     function GridRemove2_Callback(~,~)
         if ~isfield(param, 'Stack'), return; end
+        if ~strcmp(GUI.hDetector.Value, 'Eiger4M')
+            uialert(GUI.main, 'Grid Remove is available only for Eiger4M detector data.', 'Grid Remove Skipped', 'Icon', 'warning');
+            return;
+        end
         N = size(param.Stack,3);
         dlg = uiprogressdlg(GUI.main, 'Title', 'Grid Remove', ...
             'Message', sprintf('Removing grid over %d frames...', N), ...
@@ -2069,7 +2073,7 @@ btnSvX4.Layout.Column = 4;
             if dlg.CancelRequested, break; end
             D = param.Stack(:,:,ii); nmask = isnan(D); D(nmask)=0;
             try
-                [D, gridReport] = Gridremover(D);
+                [D, gridReport] = Gridremover(D, GUI.hDetector.Value);
                 if ~gridReport.Applied
                     nFailedFrames = nFailedFrames + 1;
                     failedFrames(nFailedFrames) = ii;

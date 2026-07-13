@@ -646,6 +646,10 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
 
     function GridRemove2_Callback(~,~)
         if ~isfield(param, 'Stack'), return; end
+        if ~strcmp(GUI.hDetector.Value, 'Eiger4M')
+            uialert(GUI.main, 'Grid Remove is available only for Eiger4M detector data.', 'Grid Remove Skipped', 'Icon', 'warning');
+            return;
+        end
         N = size(param.Stack,3); d = uiprogressdlg(GUI.main, 'Title', 'Grid Remove', 'Message', 'Removing Grid...');
         failedFrames = zeros(1, N);
         nFailedFrames = 0;
@@ -653,7 +657,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         for ii = 1:N
             D = param.Stack(:,:,ii); nmask = isnan(D); D(nmask)=0;
             try
-                [D, gridReport] = Gridremover(D);
+                [D, gridReport] = Gridremover(D, GUI.hDetector.Value);
                 if ~gridReport.Applied
                     nFailedFrames = nFailedFrames + 1;
                     failedFrames(nFailedFrames) = ii;

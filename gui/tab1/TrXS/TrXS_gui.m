@@ -601,9 +601,13 @@ param = initializeParams();
 
     function GridRemove_Callback(~,~)
         if isempty(param.data), uialert(GUI.main, 'Please load data first!', 'Error'); return; end
+        if ~strcmp(GUI.hDetector.Value, 'Eiger4M')
+            uialert(GUI.main, 'Grid Remove is available only for Eiger4M detector data.', 'Grid Remove Skipped', 'Icon', 'warning');
+            return;
+        end
         Nanpos = find(isnan(param.data)); param.data(Nanpos) = 0;
         try
-            [param.data, gridReport] = Gridremover(param.data);
+            [param.data, gridReport] = Gridremover(param.data, GUI.hDetector.Value);
             param.data(Nanpos) = nan;
             renderImage();
             if ~gridReport.Applied

@@ -1,4 +1,4 @@
-function [out, report] = Gridremover(data)
+function [out, report] = Gridremover(data, detectorType)
 % Gridremover  Correct Eiger grid-line intensity artifacts.
 %
 % This function is intentionally conservative. Unsupported detector sizes or
@@ -10,6 +10,11 @@ function [out, report] = Gridremover(data)
         'MedianRatio', NaN, ...
         'CorrectionFactor', NaN);
     out = data;
+
+    if nargin >= 2 && ~isempty(detectorType) && ~strcmp(char(detectorType), 'Eiger4M')
+        report.Message = 'Gridremover is available only for Eiger4M detector data.';
+        return;
+    end
 
     if ~isnumeric(data) || ndims(data) ~= 2
         report.Message = 'Gridremover expects a 2D numeric detector image.';

@@ -1342,19 +1342,23 @@ function testGridremover()
         data(:, colGroups{ii}) = single(0.8);
     end
 
-    [out, report] = Gridremover(data);
+    [out, report] = Gridremover(data, 'Eiger4M');
     assert(report.Applied, 'Gridremover should apply on Eiger-sized data.');
     assert(all(isfinite(out(:))), 'Gridremover should not introduce NaNs on valid data.');
     assert(abs(double(mean(out(rowGroups{1}, :), 'all', 'omitnan')) - 1) < 1e-6, ...
         'Gridremover should restore attenuated grid-line intensity.');
 
+    [nonEigerOut, nonEigerReport] = Gridremover(data, 'MarCCD');
+    assert(~nonEigerReport.Applied, 'Gridremover should skip non-Eiger4M detector names.');
+    assert(isequal(nonEigerOut, data), 'Non-Eiger4M Gridremover output should remain unchanged.');
+
     smallData = ones(1042, 1042, 'single');
-    [smallOut, smallReport] = Gridremover(smallData);
+    [smallOut, smallReport] = Gridremover(smallData, 'Eiger4M');
     assert(~smallReport.Applied, 'Gridremover should skip unsupported detector sizes.');
     assert(isequal(smallOut, smallData), 'Skipped Gridremover output should remain unchanged.');
 
     zeroData = zeros(2167, 2070, 'single');
-    [zeroOut, zeroReport] = Gridremover(zeroData);
+    [zeroOut, zeroReport] = Gridremover(zeroData, 'Eiger4M');
     assert(~zeroReport.Applied, 'Gridremover should skip all-zero images.');
     assert(~any(isnan(zeroOut(:))), 'Gridremover should not convert all-zero grid lines to NaN.');
 end
