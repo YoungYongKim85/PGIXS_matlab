@@ -60,7 +60,7 @@ lbl3 = uilabel(lg, 'Text', 'Exp. Mode:'); lbl3.Layout.Row = 3; lbl3.Layout.Colum
 GUI.hinsitumode = uidropdown(lg, 'Items', expModeList); GUI.hinsitumode.Layout.Row = 3; GUI.hinsitumode.Layout.Column = 4;
 
 % --- Row 4: Load Data ---
-btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Openimage2_Callback);
+btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Load Data', @()Openimage2_Callback([], [])));
 btnLoad.Layout.Row = 4; btnLoad.Layout.Column = [1 4];
 
 % --- Row 5: Filename ---
@@ -75,15 +75,15 @@ lbl5 = uilabel(lg, 'Text', '# of Files:'); lbl5.Layout.Row = 6; lbl5.Layout.Colu
 TX2.NFile = uilabel(lg, 'Text', '0', 'FontWeight', 'bold'); TX2.NFile.Layout.Row = 6; TX2.NFile.Layout.Column = 4;
 
 % --- Row 7: Background & Sub ---
-GUI.btnBkg = uibutton(lg, 'Text', 'Background', 'ButtonPushedFcn', @Bkgload2_Callback); GUI.btnBkg.Layout.Row = 7; GUI.btnBkg.Layout.Column = [1 2];
+GUI.btnBkg = uibutton(lg, 'Text', 'Background', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Load Background', @()Bkgload2_Callback([], []))); GUI.btnBkg.Layout.Row = 7; GUI.btnBkg.Layout.Column = [1 2];
 % [수정 핵심 1] Subtraction 체크 시 실시간 반영 연동
 GUI.hSubract_S = uicheckbox(lg, 'Text', 'Subtraction', 'Value', 0, 'ValueChangedFcn', @RefreshAllPlots_Callback); 
 GUI.hSubract_S.Layout.Row = 7; GUI.hSubract_S.Layout.Column = [3 4];
 
 % --- Row 8-9: Exp Params ---
 lblDiv1 = uilabel(lg, 'Text', '--- [ Exp. Parameters ] ---', 'FontWeight', 'bold', 'HorizontalAlignment', 'center'); lblDiv1.Layout.Row = 8; lblDiv1.Layout.Column = [1 4];
-GUI.btnInfo = uibutton(lg, 'Text', 'Load Info', 'ButtonPushedFcn', @Openinfo2_Callback); GUI.btnInfo.Layout.Row = 9; GUI.btnInfo.Layout.Column = [1 2];
-btnGridR = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @GridRemove2_Callback); btnGridR.Layout.Row = 9; btnGridR.Layout.Column = [3 4];
+GUI.btnInfo = uibutton(lg, 'Text', 'Load Info', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Load Info', @()Openinfo2_Callback([], []))); GUI.btnInfo.Layout.Row = 9; GUI.btnInfo.Layout.Column = [1 2];
+btnGridR = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Grid Remove', @()GridRemove2_Callback([], []))); btnGridR.Layout.Row = 9; btnGridR.Layout.Column = [3 4];
 
 % --- Row 10: Expo Time ---
 lbl6 = uilabel(lg, 'Text', 'Expo. Time:'); lbl6.Layout.Row = 10; lbl6.Layout.Column = 1;
@@ -92,7 +92,7 @@ TimeList = {'second', 'min', 'hour'};
 GUI.hTimeP = uidropdown(lg, 'Items', TimeList, 'ValueChangedFcn', @TimeUpdate_Callback); GUI.hTimeP.Layout.Row = 10; GUI.hTimeP.Layout.Column = [3 4];
 
 % --- Row 11: qMap ---
-GUI.btnQcal = uibutton(lg, 'Text', 'q-Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @Qcalc_Callback); GUI.btnQcal.Layout.Row = 11; GUI.btnQcal.Layout.Column = [1 2];
+GUI.btnQcal = uibutton(lg, 'Text', 'q-Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 q-Cal', @()Qcalc_Callback([], []))); GUI.btnQcal.Layout.Row = 11; GUI.btnQcal.Layout.Column = [1 2];
 btnSaveStk = uibutton(lg, 'Text', 'Save Stack', 'ButtonPushedFcn', @SaveStack_Callback); btnSaveStk.Layout.Row = 11; btnSaveStk.Layout.Column = [3 4];
 
 % --- Row 12-15: 1D Plot Process ---
@@ -100,7 +100,7 @@ lblDiv2 = uilabel(lg, 'Text', '--- [ 1D Plot Process ] ---', 'FontWeight', 'bold
 lbl7 = uilabel(lg, 'Text', 'Ang. Avg:'); lbl7.Layout.Row = 13; lbl7.Layout.Column = 1;
 TX2.hAng1dmin = uieditfield(lg, 'numeric', 'Value', 0); TX2.hAng1dmin.Layout.Row = 13; TX2.hAng1dmin.Layout.Column = 2;
 TX2.hAng1dmax = uieditfield(lg, 'numeric', 'Value', 360); TX2.hAng1dmax.Layout.Row = 13; TX2.hAng1dmax.Layout.Column = 3;
-btnCircExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @CircularAve2_Callback); btnCircExec.Layout.Row = 13; btnCircExec.Layout.Column = 4;
+btnCircExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Circular Average Exec', @()CircularAve2_Callback([], []))); btnCircExec.Layout.Row = 13; btnCircExec.Layout.Column = 4;
 
 GUI.hStdI2 = uicheckbox(lg, 'Text', 'Std', 'Value', 0); GUI.hStdI2.Layout.Row = 14; GUI.hStdI2.Layout.Column = 1;
 GUI.hMedianB = uicheckbox(lg, 'Text', 'Median', 'Value', 0); GUI.hMedianB.Layout.Row = 14; GUI.hMedianB.Layout.Column = 2;
@@ -112,8 +112,8 @@ btn1dPlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @Plot1dseries_Callba
 
 lbl8 = uilabel(lg, 'Text', '1D Line Ang:'); lbl8.Layout.Row = 15; lbl8.Layout.Column = 1;
 TX2.h1dphi = uieditfield(lg, 'numeric', 'Value', 0); TX2.h1dphi.Layout.Row = 15; TX2.h1dphi.Layout.Column = 2;
-btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @Drawline2_Callback); btnLine.Layout.Row = 15; btnLine.Layout.Column = 3;
-btnLineExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @Linecut2_Callback); btnLineExec.Layout.Row = 15; btnLineExec.Layout.Column = 4;
+btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Draw Line', @()Drawline2_Callback([], []))); btnLine.Layout.Row = 15; btnLine.Layout.Column = 3;
+btnLineExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Line Cut Exec', @()Linecut2_Callback([], []))); btnLineExec.Layout.Row = 15; btnLineExec.Layout.Column = 4;
 
 % --- Row 16-19: Azimuthal Process ---
 lblDiv3 = uilabel(lg, 'Text', '--- [ Azimuthal Process ] ---', 'FontWeight', 'bold', 'HorizontalAlignment', 'center'); lblDiv3.Layout.Row = 16; lblDiv3.Layout.Column = [1 4];
@@ -126,8 +126,8 @@ TX2.azipospixm = uieditfield(lg, 'numeric', 'Value', -1); TX2.azipospixm.Layout.
 TX2.azipospixp = uieditfield(lg, 'numeric', 'Value', 1); TX2.azipospixp.Layout.Row = 18; TX2.azipospixp.Layout.Column = 4;
 GUI.hMeanMedAzi = uidropdown(lg, 'Items', {'Mean', 'Median'}); GUI.hMeanMedAzi.Layout.Row = 19; GUI.hMeanMedAzi.Layout.Column = 1;
 
-btnAziDraw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @DrawAziPlot2_Callback); btnAziDraw.Layout.Row = 19; btnAziDraw.Layout.Column = 2;
-btnAziExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @Azilinecut2_Callback); btnAziExec.Layout.Row = 19; btnAziExec.Layout.Column = 3;
+btnAziDraw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Draw Azimuthal', @()DrawAziPlot2_Callback([], []))); btnAziDraw.Layout.Row = 19; btnAziDraw.Layout.Column = 2;
+btnAziExec = uibutton(lg, 'Text', 'Exec.', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS2 Azimuthal Exec', @()Azilinecut2_Callback([], []))); btnAziExec.Layout.Row = 19; btnAziExec.Layout.Column = 3;
 
 % [수정 핵심 3] 실시간 반영 연동
 GUI.hNormal4 = uidropdown(lg, 'Items', NormalList, 'ValueChangedFcn', @PlotAziseries2_Callback); 
@@ -248,6 +248,11 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
 % =========================================================================
 % ====================== CALLBACK FUNCTIONS ===============================
 % =========================================================================
+
+    function runLoggedAction(actionName, callbackFcn)
+        runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
+            @()summarizePGIXSState(param, actionName, struct('GUI', 'TrXS2_gui')));
+    end
 
     % [통합 플롯 리프레시 콜백 - Subtraction 변동용]
     function RefreshAllPlots_Callback(~,~)
@@ -1653,7 +1658,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         param.SumIROI = cat(1, param.SumIROI, new_roi_sum); PlotROI_Callback;
     end
 
-    function Resize_Callback(src, ~)
+    function Resize_Callback(src, ~) %#ok<DEFNU>
         original_units = get(src, 'Units'); set(src, 'Units', 'pixels'); pos_pix = get(src, 'Position'); set(src, 'Units', original_units); height = pos_pix(4); if height < 10, return; end
         baseFont = height / 110; uiFontSize = max(8, min(10, baseFont)); panelFontSize = max(9, min(11, baseFont + 1)); axesFontSize = max(7, min(9, baseFont - 1));
         % Modern UI 호환: uilabel, uibutton, uidropdown, uieditfield, uicheckbox

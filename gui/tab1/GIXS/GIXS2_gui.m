@@ -51,7 +51,7 @@ GUI.hDetector = uidropdown(lg, 'Items', {'Eiger4M', 'MarCCD', 'MX170HS', 'PI-CCD
 GUI.hinsitumode = uidropdown(lg, 'Items', {'Time', 'Temperature', 'Angle', 'LowTemp.'}, 'ValueChangedFcn', @InsituModeChanged_Callback); GUI.hinsitumode.Layout.Row = 2; GUI.hinsitumode.Layout.Column = [5 6];
 
 % [3] Load Data
-bLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Openimage2_Callback);
+bLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Load Data', @()Openimage2_Callback([], [])));
 bLoad.Layout.Row = 3; bLoad.Layout.Column = [1 6];
 
 % [4] Filename & Set
@@ -67,9 +67,9 @@ GX2.NFile = uilabel(lg, 'Text', '0', 'FontWeight', 'bold'); GX2.NFile.Layout.Row
 
 % [6] Exp Params
 l5 = uilabel(lg, 'Text', '-- Exp. Params --', 'FontWeight', 'bold'); l5.Layout.Row = 6; l5.Layout.Column = [1 3];
-GUI.btnInfo = uibutton(lg, 'Text', 'Load Info', 'FontWeight', 'bold', 'BackgroundColor', 'w', 'ButtonPushedFcn', @Openinfo2_Callback); 
+GUI.btnInfo = uibutton(lg, 'Text', 'Load Info', 'FontWeight', 'bold', 'BackgroundColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Load Info', @()Openinfo2_Callback([], []))); 
 GUI.btnInfo.Layout.Row = 6; GUI.btnInfo.Layout.Column = [4 5];
-bGrid = uibutton(lg, 'Text', 'Grid Rmv', 'ButtonPushedFcn', @GridRemove2_Callback); bGrid.Layout.Row = 6; bGrid.Layout.Column = 6;
+bGrid = uibutton(lg, 'Text', 'Grid Rmv', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Grid Remove', @()GridRemove2_Callback([], []))); bGrid.Layout.Row = 6; bGrid.Layout.Column = 6;
 
 % [7] Incidence Angle Calibration (y-pos & Z-plot)
 lblYp = uilabel(lg, 'Text', 'y-pos:'); lblYp.Layout.Row = 7; lblYp.Layout.Column = 1;
@@ -93,7 +93,7 @@ l12 = uilabel(lg, 'Text', 'Expo(s):'); l12.Layout.Row = 10; l12.Layout.Column = 
 GX2.hExptime = uieditfield(lg, 'numeric', 'Value', 1, 'ValueChangedFcn', @TimeUnit_Callback); GX2.hExptime.Layout.Row = 10; GX2.hExptime.Layout.Column = 2;
 GUI.hTimeP = uidropdown(lg, 'Items', {'second', 'min', 'hour'}, 'ValueChangedFcn', @TimeUnit_Callback); GUI.hTimeP.Layout.Row = 10; GUI.hTimeP.Layout.Column = 3;
 GUI.hQMAPmethod = uidropdown(lg, 'Items', {'Qxy/Qz', 'Qy/Qz'}); GUI.hQMAPmethod.Layout.Row = 10; GUI.hQMAPmethod.Layout.Column = 4;
-GUI.btnQcal = uibutton(lg, 'Text', 'q-Cal.', 'FontWeight', 'bold', 'BackgroundColor', 'w', 'ButtonPushedFcn', @Qcalc_Callback); 
+GUI.btnQcal = uibutton(lg, 'Text', 'q-Cal.', 'FontWeight', 'bold', 'BackgroundColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 q-Cal', @()Qcalc_Callback([], []))); 
 GUI.btnQcal.Layout.Row = 10; GUI.btnQcal.Layout.Column = 5;
 bSvStk = uibutton(lg, 'Text', 'Sv Stack', 'ButtonPushedFcn', @SaveStack_Callback); bSvStk.Layout.Row = 10; bSvStk.Layout.Column = 6;
 
@@ -129,8 +129,8 @@ l18 = uilabel(lg, 'Text', 'y-pos mv:'); l18.Layout.Row = 17; l18.Layout.Column =
 GX2.h1dypos = uieditfield(lg, 'numeric', 'Value', 0); GX2.h1dypos.Layout.Row = 17; GX2.h1dypos.Layout.Column = 3;
 bPos = uibutton(lg, 'Text', 'Position', 'ButtonPushedFcn', @Position2D_Callback); bPos.Layout.Row = [16 17]; bPos.Layout.Column = [4 5];
 
-bLine = uibutton(lg, 'Text', 'Draw Line', 'ButtonPushedFcn', @Drawline2_Callback); bLine.Layout.Row = 18; bLine.Layout.Column = [1 2];
-bLineEx = uibutton(lg, 'Text', 'Exec Cut', 'ButtonPushedFcn', @Linecut2_Callback); bLineEx.Layout.Row = 18; bLineEx.Layout.Column = [3 4];
+bLine = uibutton(lg, 'Text', 'Draw Line', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Draw Line', @()Drawline2_Callback([], []))); bLine.Layout.Row = 18; bLine.Layout.Column = [1 2];
+bLineEx = uibutton(lg, 'Text', 'Exec Cut', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Line Cut Exec', @()Linecut2_Callback([], []))); bLineEx.Layout.Row = 18; bLineEx.Layout.Column = [3 4];
 % 값이 변경되면 곧바로 Plot1dseries2_Callback을 실행하여 그래프를 업데이트합니다.
 GUI.hNormal1D = uidropdown(lg, 'Items', {'None','IC','BC'}, 'ValueChangedFcn', @Plot1dseries2_Callback); 
 GUI.hNormal1D.Layout.Row = 18; GUI.hNormal1D.Layout.Column = [5 6];
@@ -149,8 +149,8 @@ GX2.azipospixm = uieditfield(lg, 'numeric', 'Value', -1, 'ValueChangedFcn', @Cal
 GX2.azipospixp = uieditfield(lg, 'numeric', 'Value', 1, 'ValueChangedFcn', @CalcPos_Callback); GX2.azipospixp.Layout.Row = 22; GX2.azipospixp.Layout.Column = 4;
 GUI.hMeanMedAzi = uidropdown(lg, 'Items', {'Mean', 'Median'}); GUI.hMeanMedAzi.Layout.Row = 22; GUI.hMeanMedAzi.Layout.Column = [5 6];
 
-bAziDrw = uibutton(lg, 'Text', 'Draw Arc', 'ButtonPushedFcn', @DrawAziPlot2_Callback); bAziDrw.Layout.Row = 23; bAziDrw.Layout.Column = [1 2];
-bAziEx = uibutton(lg, 'Text', 'Exec Azi', 'ButtonPushedFcn', @Azilinecut2_Callback); bAziEx.Layout.Row = 23; bAziEx.Layout.Column = [3 4];
+bAziDrw = uibutton(lg, 'Text', 'Draw Arc', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Draw Azimuthal', @()DrawAziPlot2_Callback([], []))); bAziDrw.Layout.Row = 23; bAziDrw.Layout.Column = [1 2];
+bAziEx = uibutton(lg, 'Text', 'Exec Azi', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS2 Azimuthal Exec', @()Azilinecut2_Callback([], []))); bAziEx.Layout.Row = 23; bAziEx.Layout.Column = [3 4];
 % 값이 변경되면 곧바로 PlotAziseries2_Callback을 실행하여 그래프를 업데이트합니다.
 GUI.hNormalAzi = uidropdown(lg, 'Items', {'None','IC','BC'}, 'ValueChangedFcn', @PlotAziseries2_Callback); 
 GUI.hNormalAzi.Layout.Row = 23; GUI.hNormalAzi.Layout.Column = [5 6];
@@ -406,6 +406,11 @@ btnSvX4.Layout.Column = 4;
 % HELPER & CALLBACK FUNCTIONS (Internal)
 % ========================================================================
     function p = initializeParams(), p.data = []; p.Expinfo = 0; p.correctionI = 0; p.Normalcheck = 0; end
+
+    function runLoggedAction(actionName, callbackFcn)
+        runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
+            @()summarizePGIXSState(param, actionName, struct('GUI', 'GIXS2_gui')));
+    end
 
     function pathset2_Callback(~,~)
         pathway = uigetdir;

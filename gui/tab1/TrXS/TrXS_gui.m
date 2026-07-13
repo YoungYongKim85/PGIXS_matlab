@@ -64,7 +64,7 @@ GUI.hMultishot = uicheckbox(lg, 'Text', 'Multishot', 'Value', 0);
 GUI.hMultishot.Layout.Row = 2; GUI.hMultishot.Layout.Column = [5 6];
 
 % --- Row 3: Load Data Button ---
-btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Openimage_Callback);
+btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Load Data', @()Openimage_Callback([], [])));
 btnLoad.Layout.Row = 3; btnLoad.Layout.Column = [1 6];
 
 % --- Row 4: IC SC BC ---
@@ -83,7 +83,7 @@ lbl6 = uilabel(lg, 'Text', 'Energy [keV]:');
 lbl6.Layout.Row = 5; lbl6.Layout.Column = [1 2];
 TX.hEnergy = uieditfield(lg, 'numeric', 'Value', 9.5); 
 TX.hEnergy.Layout.Row = 5; TX.hEnergy.Layout.Column = [3 4];
-btnLoadInfo = uibutton(lg, 'Text', 'Load Info', 'ButtonPushedFcn', @Openinfo_Callback); 
+btnLoadInfo = uibutton(lg, 'Text', 'Load Info', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Load Info', @()Openinfo_Callback([], []))); 
 btnLoadInfo.Layout.Row = 5; btnLoadInfo.Layout.Column = [5 6];
 
 % --- Row 6: SDD ---
@@ -103,7 +103,7 @@ TX.hzPOS.Layout.Row = 7; TX.hzPOS.Layout.Column = 4;
 % --- Row 8: Bkg ---
 lbl9 = uilabel(lg, 'Text', 'Background:'); 
 lbl9.Layout.Row = 8; lbl9.Layout.Column = [1 2];
-btnBkg = uibutton(lg, 'Text', 'Load Bkg.', 'ButtonPushedFcn', @Bkgload_Callback); 
+btnBkg = uibutton(lg, 'Text', 'Load Bkg.', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Load Background', @()Bkgload_Callback([], []))); 
 btnBkg.Layout.Row = 8; btnBkg.Layout.Column = [3 6];
 
 % --- Row 9: Normal ---
@@ -118,13 +118,13 @@ TX.Plusdata = uieditfield(lg, 'numeric', 'Value', 1);
 TX.Plusdata.Layout.Row = 9; TX.Plusdata.Layout.Column = [5 6];
 
 % --- Row 10: Bkg Sub ---
-btnSub = uibutton(lg, 'Text', 'BKG Sub. & Norm', 'ButtonPushedFcn', @Subtraction_Callback); 
+btnSub = uibutton(lg, 'Text', 'BKG Sub. & Norm', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Background Subtract Normalize', @()Subtraction_Callback([], []))); 
 btnSub.Layout.Row = 10; btnSub.Layout.Column = [1 6];
 
 % --- Row 11: Grid Remove & Q-map ---
-btnGrid = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @GridRemove_Callback); 
+btnGrid = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Grid Remove', @()GridRemove_Callback([], []))); 
 btnGrid.Layout.Row = 11; btnGrid.Layout.Column = [1 3];
-btnQmap = uibutton(lg, 'Text', 'q-Map Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @Correction_Callback); 
+btnQmap = uibutton(lg, 'Text', 'q-Map Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS q-Map Cal', @()Correction_Callback([], []))); 
 btnQmap.Layout.Row = 11; btnQmap.Layout.Column = [4 6];
 
 % --- Row 12: Divider 1 ---
@@ -149,7 +149,7 @@ TX.hAng1dmin = uieditfield(lg, 'numeric', 'Value', 0);
 TX.hAng1dmin.Layout.Row = 14; TX.hAng1dmin.Layout.Column = 3;
 TX.hAng1dmax = uieditfield(lg, 'numeric', 'Value', 360); 
 TX.hAng1dmax.Layout.Row = 14; TX.hAng1dmax.Layout.Column = 4;
-btnPlotAvg = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @CircularAve_Callback); 
+btnPlotAvg = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Circular Average', @()CircularAve_Callback([], []))); 
 btnPlotAvg.Layout.Row = 14; btnPlotAvg.Layout.Column = [5 6];
 
 % --- Row 15: 1D Line ---
@@ -157,9 +157,9 @@ lbl14 = uilabel(lg, 'Text', '1D Line Ang:');
 lbl14.Layout.Row = 15; lbl14.Layout.Column = [1 2];
 TX.h1dphi = uieditfield(lg, 'numeric', 'Value', 0); 
 TX.h1dphi.Layout.Row = 15; TX.h1dphi.Layout.Column = [3 4];
-btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @Drawline_Callback); 
+btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Draw Line', @()Drawline_Callback([], []))); 
 btnLine.Layout.Row = 15; btnLine.Layout.Column = 5;
-btnLinePlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @Lineplot_Callback); 
+btnLinePlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Line Plot', @()Lineplot_Callback([], []))); 
 btnLinePlot.Layout.Row = 15; btnLinePlot.Layout.Column = 6;
 
 % --- Row 16: Divider 2 ---
@@ -191,15 +191,15 @@ TX.Qpospixp = uieditfield(lg, 'numeric', 'Value', 0, 'Editable', 'off');
 TX.Qpospixp.Layout.Row = 19; TX.Qpospixp.Layout.Column = 5;
 
 % --- Row 20: Actions ---
-btnPoint = uibutton(lg, 'Text', 'Point Find', 'ButtonPushedFcn', @PointFind_Callback); 
+btnPoint = uibutton(lg, 'Text', 'Point Find', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Point Find', @()PointFind_Callback([], []))); 
 btnPoint.Layout.Row = 20; btnPoint.Layout.Column = [1 2];
 GUI.hMeanMed = uidropdown(lg, 'Items', {'Mean', 'Median'}); 
 GUI.hMeanMed.Layout.Row = 20; GUI.hMeanMed.Layout.Column = [3 4];
 
 % --- Row 21: Draw / Plot ---
-btnAziDraw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @DrawPlot_Callback); 
+btnAziDraw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Draw Azimuthal', @()DrawPlot_Callback([], []))); 
 btnAziDraw.Layout.Row = 21; btnAziDraw.Layout.Column = [3 4];
-btnAziPlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @AziPlot_Callback); 
+btnAziPlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Azimuthal Plot', @()AziPlot_Callback([], []))); 
 btnAziPlot.Layout.Row = 21; btnAziPlot.Layout.Column = [5 6];
 
 lbl19 = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
@@ -284,6 +284,11 @@ param = initializeParams();
 % =========================================================================
 % ====================== HELPER & CALLBACK FUNCTIONS ======================
 % =========================================================================
+
+    function runLoggedAction(actionName, callbackFcn)
+        runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
+            @()summarizePGIXSState(param, actionName, struct('GUI', 'TrXS_gui')));
+    end
 
     function [BW, userSelected] = selectROIMask(data2d, p)
         % ROI 마스크 선택 헬퍼 (CircularAve / DrawPlot 공용)
@@ -1041,7 +1046,7 @@ param = initializeParams();
         uialert(GUI.main, 'Save done!', 'Success');
     end
 
-    function Resize_Callback(src, ~)
+    function Resize_Callback(src, ~) %#ok<DEFNU>
         referenceHeight = 900; 
         
         original_units = get(src, 'Units');

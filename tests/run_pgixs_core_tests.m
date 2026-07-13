@@ -81,6 +81,7 @@ function run_pgixs_core_tests()
     testXtalCalculatorStability();
     testRefractionCalculator();
     testFitToolFunctions();
+    testLoggingUtilities();
     testTempFilesAreNotReferenced(repoRoot);
     testActiveFilesDoNotUseConsoleDisp(repoRoot);
     testActiveFilesDoNotDisableAllWarnings(repoRoot);
@@ -1708,6 +1709,35 @@ function testFitToolFunctions()
     assert(pv(x == 0) == max(pv), 'pseudoVoigt fit helper should peak at its center.');
 end
 
+function testLoggingUtilities()
+    param = struct();
+    param.FileName = 'sample_0001.h5';
+    param.detector = 'Eiger4M';
+    param.Mapping = 'Q';
+    param.SDD = 2500;
+    param.pixel = 0.075;
+    param.bpos = [1024 1024];
+    param.data = single(ones(4, 5));
+    param.Q = single(reshape(1:20, 4, 5));
+
+    state = summarizePGIXSState(param, 'Logging Unit Test', struct('GUI', 'unit'));
+    assert(strcmp(state.Action, 'Logging Unit Test'), 'Logging state action mismatch.');
+    assert(strcmp(state.GUI, 'unit'), 'Logging state extra context mismatch.');
+    assert(isequal(state.Data.Size, [4 5]), 'Logging state data size mismatch.');
+    assert(isequal(state.Q.Size, [4 5]), 'Logging state should summarize Q size.');
+
+    err = MException('PGIXS:UnitTest', 'Synthetic logging failure.');
+    logFile = writePGIXSErrorLog('Logging Unit Test', err, state);
+    assert(isfile(logFile), 'Logging utility should write a log file.');
+
+    logText = string(fileread(logFile));
+    assert(contains(logText, 'Logging Unit Test'), 'Log file should include action name.');
+    assert(contains(logText, 'PGIXS:UnitTest'), 'Log file should include error identifier.');
+    assert(contains(logText, 'sample_0001.h5'), 'Log file should include state summary.');
+
+    delete(logFile);
+end
+
 function testTempFilesAreNotReferenced(repoRoot)
     tempNames = {'GIXSXtal2D_gui_temp', 'TrXSXtal2D_gui_temp'};
     activeFiles = collectPGIXSActiveMatlabFiles(repoRoot);
@@ -1845,6 +1875,9 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'IO', 'savePGIXSStackFile.m')
         fullfile(repoRoot, 'functions', 'IO', 'savePGIXS2DInfoFile.m')
         fullfile(repoRoot, 'functions', 'IO', 'exportPGIXSAxesImage.m')
+        fullfile(repoRoot, 'functions', 'Logging', 'writePGIXSErrorLog.m')
+        fullfile(repoRoot, 'functions', 'Logging', 'summarizePGIXSState.m')
+        fullfile(repoRoot, 'functions', 'Logging', 'runPGIXSCallback.m')
         fullfile(repoRoot, 'functions', 'Color', 'ColorSelector.m')
         fullfile(repoRoot, 'functions', 'Color', 'Jet2.m')
         fullfile(repoRoot, 'functions', 'Color', 'Linech.m')

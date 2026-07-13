@@ -65,7 +65,7 @@ GX.hDetector = uidropdown(lg, 'Items', detectorList); GX.hDetector.Layout.Row = 
 GX.hMultishot = uicheckbox(lg, 'Text', 'Multishot'); GX.hMultishot.Layout.Row = 2; GX.hMultishot.Layout.Column = [5 6];
 
 % --- Row 3: Load Data ---
-btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Openimage_Callback);
+btnLoad = uibutton(lg, 'Text', 'LOAD DATA', 'FontSize', 12, 'FontWeight', 'bold', 'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Load Data', @()Openimage_Callback([], [])));
 btnLoad.Layout.Row = 3; btnLoad.Layout.Column = [1 6];
 
 % --- Row 4: Counters ---
@@ -88,11 +88,11 @@ GX.hzPOS = uieditfield(lg, 'numeric', 'Value', 1800); GX.hzPOS.Layout.Row = 6; G
 % --- Row 7: Footprint & Load Info ---
 lblF = uilabel(lg, 'Text', 'Footprint [mm]:'); lblF.Layout.Row = 7; lblF.Layout.Column = [1 2];
 GX.hSample = uieditfield(lg, 'numeric', 'Value', 1); GX.hSample.Layout.Row = 7; GX.hSample.Layout.Column = 3;
-btnInfo = uibutton(lg, 'Text', 'Load Info', 'FontWeight', 'bold', 'ButtonPushedFcn', @Openinfo_Callback);
+btnInfo = uibutton(lg, 'Text', 'Load Info', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Load Info', @()Openinfo_Callback([], [])));
 btnInfo.Layout.Row = 7; btnInfo.Layout.Column = [4 6];
 
 % --- Row 8: Grid Remove ---
-btnGridR = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @GridRemove_Callback);
+btnGridR = uibutton(lg, 'Text', 'Grid Remove', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Grid Remove', @()GridRemove_Callback([], [])));
 btnGridR.Layout.Row = 8; btnGridR.Layout.Column = [4 6];
 
 % [X-rot 완전 삭제됨]
@@ -111,21 +111,21 @@ GX.hAiDeg = uieditfield(lg, 'numeric', 'Value', 0.1, 'BackgroundColor', [0.8 1 1
 
 % --- Row 11: Background ---
 lblBkg = uilabel(lg, 'Text', 'Background:'); lblBkg.Layout.Row = 11; lblBkg.Layout.Column = [1 2];
-btnBkg = uibutton(lg, 'Text', 'Load Bkg.', 'ButtonPushedFcn', @Bkgload_Callback); btnBkg.Layout.Row = 11; btnBkg.Layout.Column = [3 4];
+btnBkg = uibutton(lg, 'Text', 'Load Bkg.', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Load Background', @()Bkgload_Callback([], []))); btnBkg.Layout.Row = 11; btnBkg.Layout.Column = [3 4];
 lblP = uilabel(lg, 'Text', '*Data:'); lblP.Layout.Row = 11; lblP.Layout.Column = 5;
 GX.Plusdata = uieditfield(lg, 'numeric', 'Value', 1); GX.Plusdata.Layout.Row = 11; GX.Plusdata.Layout.Column = 6;
 
 % --- Row 12: Normalization ---
 lblN = uilabel(lg, 'Text', 'Normalization:'); lblN.Layout.Row = 12; lblN.Layout.Column = [1 2];
 GX.hNormal = uidropdown(lg, 'Items', NormalList); GX.hNormal.Layout.Row = 12; GX.hNormal.Layout.Column = [3 4];
-btnSub = uibutton(lg, 'Text', 'BKG sub. & Norm', 'ButtonPushedFcn', @Subtraction_Callback); btnSub.Layout.Row = 12; btnSub.Layout.Column = [5 6];
+btnSub = uibutton(lg, 'Text', 'BKG sub. & Norm', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Background Subtract Normalize', @()Subtraction_Callback([], []))); btnSub.Layout.Row = 12; btnSub.Layout.Column = [5 6];
 
 % --- Row 13-14: Q-Map Cal ---
 GX.hQuncertain = uicheckbox(lg, 'Text', 'q uncertainty', 'Value', 0); GX.hQuncertain.Layout.Row = 13; GX.hQuncertain.Layout.Column = [1 3];
 lblMap = uilabel(lg, 'Text', 'Mapping:'); lblMap.Layout.Row = 13; lblMap.Layout.Column = 4;
 GX.hQMAPmethod = uidropdown(lg, 'Items', QMAPList); GX.hQMAPmethod.Layout.Row = 13; GX.hQMAPmethod.Layout.Column = [5 6];
 
-GX.btnQcal = uibutton(lg, 'Text', 'q-Map Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @Correction_Callback);
+GX.btnQcal = uibutton(lg, 'Text', 'q-Map Cal.', 'FontWeight', 'bold', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS q-Map Cal', @()Correction_Callback([], [])));
 GX.btnQcal.Layout.Row = 14; GX.btnQcal.Layout.Column = [4 6];
 
 % --- Row 15: [ 1D Plot Process ] ---
@@ -156,13 +156,13 @@ lblYm = uilabel(lg, 'Text', 'y-pos move (pix):'); lblYm.Layout.Row = 20; lblYm.L
 GX.h1dypos = uieditfield(lg, 'numeric', 'Value', 0); GX.h1dypos.Layout.Row = 20; GX.h1dypos.Layout.Column = 3;
 
 % Position 버튼을 19~20행 우측에 2줄 높이로 걸쳐서 배치 (직관성 강화)
-btnPos = uibutton(lg, 'Text', 'Position', 'ButtonPushedFcn', @PointFindLine_Callback); 
+btnPos = uibutton(lg, 'Text', 'Position', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Line Position', @()PointFindLine_Callback([], []))); 
 btnPos.Layout.Row = [19 20]; btnPos.Layout.Column = [4 6];
 
 % --- Row 21: Actions (Line & 1d Plot) ---
 % 남은 공간을 활용해 Line과 1d Plot 버튼을 시원하게 좌우로 절반씩 분할 배치합니다.
-btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @Drawline_Callback); btnLine.Layout.Row = 21; btnLine.Layout.Column = [1 3];
-btn1dP = uibutton(lg, 'Text', '1d Plot', 'ButtonPushedFcn', @Lineplot_Callback); btn1dP.Layout.Row = 21; btn1dP.Layout.Column = [4 6];
+btnLine = uibutton(lg, 'Text', 'Line', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Draw Line', @()Drawline_Callback([], []))); btnLine.Layout.Row = 21; btnLine.Layout.Column = [1 3];
+btn1dP = uibutton(lg, 'Text', '1d Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS 1D Line Plot', @()Lineplot_Callback([], []))); btn1dP.Layout.Row = 21; btn1dP.Layout.Column = [4 6];
 
 % --- Row 23: [ Azimuthal Process ] ---
 lblDiv2 = uilabel(lg, 'Text', '--- [ Azimuthal Process ] ---', 'FontWeight', 'bold', 'HorizontalAlignment', 'center'); lblDiv2.Layout.Row = 23; lblDiv2.Layout.Column = [1 6];
@@ -185,11 +185,11 @@ GX.Qpospixm = uieditfield(lg, 'numeric', 'Value', 0, 'BackgroundColor', [0.9 0.9
 GX.Qpospixp = uieditfield(lg, 'numeric', 'Value', 0, 'BackgroundColor', [0.9 0.9 0.9], 'Editable', 'off'); GX.Qpospixp.Layout.Row = 26; GX.Qpospixp.Layout.Column = 5;
 
 % --- Row 27-28: Azi Actions ---
-btnAzPos = uibutton(lg, 'Text', 'Position', 'ButtonPushedFcn', @PointFindAzi_Callback); btnAzPos.Layout.Row = 27; btnAzPos.Layout.Column = [1 2];
+btnAzPos = uibutton(lg, 'Text', 'Position', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Azimuthal Position', @()PointFindAzi_Callback([], []))); btnAzPos.Layout.Row = 27; btnAzPos.Layout.Column = [1 2];
 GX.hMeanMed = uidropdown(lg, 'Items', {'Mean', 'Median'}); GX.hMeanMed.Layout.Row = 27; GX.hMeanMed.Layout.Column = [3 4];
 
-btnAzDrw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @DrawPlot_Callback); btnAzDrw.Layout.Row = 28; btnAzDrw.Layout.Column = [3 4];
-btnAzPlt = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @AziPlot_Callback); btnAzPlt.Layout.Row = 28; btnAzPlt.Layout.Column = [5 6];
+btnAzDrw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Draw Azimuthal', @()DrawPlot_Callback([], []))); btnAzDrw.Layout.Row = 28; btnAzDrw.Layout.Column = [3 4];
+btnAzPlt = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Azimuthal Plot', @()AziPlot_Callback([], []))); btnAzPlt.Layout.Row = 28; btnAzPlt.Layout.Column = [5 6];
 
 % --- Row 30: Footer ---
 lblFooter = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
@@ -371,6 +371,11 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
 % =========================================================================
 % ====================== CALLBACK FUNCTIONS ===============================
 % =========================================================================
+
+    function runLoggedAction(actionName, callbackFcn)
+        runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
+            @()summarizePGIXSState(param, actionName, struct('GUI', 'GIXS_gui')));
+    end
 
     function pathset_Callback(~,~)
         pathway = uigetdir;
