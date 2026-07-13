@@ -21,7 +21,7 @@ function [data, counts, meta] = loadPGIXSImageFile(filePath, fileFormat)
         case {'.tif', '.tiff'}
             data = single(imread(filePath));
         case '.h5'
-            [data, counts, meta] = loadH5Image(filePath, meta);
+            [data, counts, meta] = loadH5Image(filePath, meta, nargout > 1);
         otherwise
             data = single(imread(filePath));
     end
@@ -81,8 +81,12 @@ function tf = isImageCandidate(varInfo)
         numel(varInfo.size) >= 2 && all(varInfo.size(1:2) > 1);
 end
 
-function [data, counts, meta] = loadH5Image(filePath, meta)
+function [data, counts, meta] = loadH5Image(filePath, meta, readMetadata)
     data = loadPGIXSH5Frame(filePath);
+    if ~readMetadata
+        counts = [];
+        return;
+    end
 
     h5Meta = readPGIXSH5Metadata(filePath);
     counts = single([h5Meta.Counter1, h5Meta.CounterBC]);

@@ -164,6 +164,16 @@ function testH5FrameLoader(repoRoot)
 
     zeroSaturated = loadPGIXSH5Frame(h5File, mask, 0);
     assert(isequal(size(zeroSaturated), size(frame)), 'H5 zero-saturated frame size mismatch.');
+
+    stackH5File = [tempname(tempdir), '.h5'];
+    stackCleanup = onCleanup(@() deleteIfExists(stackH5File));
+    stackData = reshape(uint16(1:24), [3, 4, 2]);
+    h5create(stackH5File, '/entry/data/data', size(stackData), 'Datatype', 'uint16');
+    h5write(stackH5File, '/entry/data/data', stackData);
+    firstFrame = loadPGIXSH5Frame(stackH5File);
+    assert(isequal(size(firstFrame), [4, 3]), '3D H5 loader should return one transposed 2D frame.');
+    assert(isequal(firstFrame, single(stackData(:, :, 1)')), ...
+        '3D H5 loader should read only the first detector frame.');
 end
 
 function testH5FrameRetryLoader()

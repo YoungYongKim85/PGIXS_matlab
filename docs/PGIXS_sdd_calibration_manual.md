@@ -18,6 +18,8 @@ are used later by TrXS/GIXS Tab1 processing and Tab3 indexing.
    - H5, TIFF, MAT, and text image loading use the shared PGIXS image loader.
    - For Eiger H5 files, `/entry/data/data` is transposed into MATLAB image
      orientation automatically.
+   - If the H5 detector dataset is a stack, SDD calibration reads only the first
+     detector frame to avoid loading the full stack into memory.
 4. Select the standard sample.
    - `SEBS`
    - `Silver behenate`
