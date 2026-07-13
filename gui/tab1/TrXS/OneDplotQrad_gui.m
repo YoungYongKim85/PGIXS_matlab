@@ -464,16 +464,12 @@ function OneDplotQrad_gui(param, parentFig)
             data = double([X, Y]);
         end
 
-        if isfield(inputparam, 'coverage')
-            data = [data, inputparam.coverage(:)];
-            if isfield(inputparam, 'validCounts') && isfield(inputparam, 'sectorCounts')
-                data = [data, inputparam.validCounts(:), inputparam.sectorCounts(:)];
-            end
-        end
-        
         SFN = [param.FileName, '_Radial'];
         selection = uiconfirm(GUI.mainF, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
-        if strcmp(selection, 'Yes'), SFN = NewFileName(SFN); end
+        if strcmp(selection, 'Yes')
+            [SFN, nameOK] = promptPGIXSSaveFileBaseName(SFN, SaveForm, 'Save Radial Data As');
+            if ~nameOK, return; end
+        end
         
         savePath = fullfile(filepath, [SFN, SaveForm]);
         

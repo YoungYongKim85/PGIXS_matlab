@@ -188,7 +188,8 @@ function OneDplotAzi_gi_gui(param, parentFig)
         
         selection = uiconfirm(GUI.mainF, 'Do you need to change filename?', 'Confirmation', 'Options', {'Yes', 'No'}, 'DefaultOption', 'Yes');
         if strcmp(selection, 'Yes')
-            SFN = NewFileName(SFN);
+            [SFN, nameOK] = promptPGIXSSaveFileBaseName(SFN, SaveForm, 'Save Azimuthal Data As');
+            if ~nameOK, return; end
         end
         
         % Save data file

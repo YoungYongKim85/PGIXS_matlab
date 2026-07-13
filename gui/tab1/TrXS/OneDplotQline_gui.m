@@ -404,7 +404,10 @@ function OneDplotQline_gui(param, parentFig)
         
         SFN = [param.FileName, '_QLine_', num2str(param.ang)];
         selection = uiconfirm(GUI.mainF, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
-        if strcmp(selection, 'Yes'), SFN = NewFileName(SFN); end
+        if strcmp(selection, 'Yes')
+            [SFN, nameOK] = promptPGIXSSaveFileBaseName(SFN, SaveForm, 'Save Q-Line Data As');
+            if ~nameOK, return; end
+        end
         
         savePath = fullfile(filepath, [SFN, SaveForm]);
         

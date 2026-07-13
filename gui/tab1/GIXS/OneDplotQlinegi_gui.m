@@ -523,8 +523,8 @@ function OneDplotQlinegi_gui(param, parentFig)
                 X = inputparam.Q1d; Y = inputparam.data;
                 [X, idx] = sort(X); Y = Y(idx);
                 if isfield(inputparam, 'Q1dstd')
-                    Xstd = inputparam.Q1dstd(idx); Ystd = sqrt(abs(Y)); Xmin = inputparam.Q1dmin(idx); Xmax = inputparam.Q1dmax(idx);
-                    data = double([X, Y, Xstd, Ystd, Xmin, Xmax]);
+                    Ystd = sqrt(abs(Y));
+                    data = double([X, Y, Ystd]);
                 else
                     data = double([X, Y]);
                 end
@@ -535,7 +535,10 @@ function OneDplotQlinegi_gui(param, parentFig)
         end
         
         selection = uiconfirm(GUI.mainF, 'Do you need to change filename?', 'Confirmation', 'Options', {'Yes', 'No'}, 'DefaultOption', 'Yes');
-        if strcmp(selection, 'Yes'), SFN = NewFileName(SFN); end
+        if strcmp(selection, 'Yes')
+            [SFN, nameOK] = promptPGIXSSaveFileBaseName(SFN, SaveForm, 'Save 1D Data As');
+            if ~nameOK, return; end
+        end
         
         SaveFilepath = fullfile(filepath, [SFN, SaveForm]);
         savePGIXSDataFile(SaveFilepath, SaveForm, data, struct('data', data));
