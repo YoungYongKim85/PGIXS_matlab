@@ -409,6 +409,8 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         param.cmin = min(param.data(param.data > 0), [], 'omitnan'); param.cmax = max(param.data(:), [], 'omitnan');
         GX.cMax.Value = double(param.cmax); GX.cMin.Value = double(param.cmin);
         GX.btnQcal.BackgroundColor = [0.96 0.96 0.96];
+        btnGridR.BackgroundColor = [0.96 0.96 0.96];
+        btnGridR.FontColor = [0.15 0.15 0.15];
 
         % 새 데이터 로드 시 Load Info로 채워졌던 필드의 강조색을 default(흰색)로 복귀
         % (Load Info → fields turn cyan; Load Data → fields back to white)
@@ -509,6 +511,9 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
             renderImage();
             if ~gridReport.Applied
                 uialert(GUI.main, gridReport.Message, 'Grid Remove Skipped', 'Icon', 'warning');
+            else
+                btnGridR.BackgroundColor = [0.75 0.95 0.75];
+                btnGridR.FontColor = [0.15 0.15 0.15];
             end
         catch ME
             param.data(Nanpos) = nan;

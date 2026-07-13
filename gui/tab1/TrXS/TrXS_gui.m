@@ -461,6 +461,8 @@ param = initializeParams();
 
         btnQmap.BackgroundColor = [0.96 0.96 0.96]; % 기본 회색
         btnQmap.FontColor = [0.15 0.15 0.15];       % 기본 텍스트 색상(검정)
+        btnGrid.BackgroundColor = [0.96 0.96 0.96];
+        btnGrid.FontColor = [0.15 0.15 0.15];
         
         GUI.hMapping.Value = 'Pixel'; 
         param.Mapping = 'Pixel';
@@ -612,6 +614,9 @@ param = initializeParams();
             renderImage();
             if ~gridReport.Applied
                 uialert(GUI.main, gridReport.Message, 'Grid Remove Skipped', 'Icon', 'warning');
+            else
+                btnGrid.BackgroundColor = [0.3 0.6 0.4];
+                btnGrid.FontColor = [1 1 1];
             end
         catch ME
             param.data(Nanpos) = nan;

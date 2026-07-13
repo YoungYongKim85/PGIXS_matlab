@@ -491,6 +491,8 @@ btnSvX4.Layout.Column = 4;
         
         % 새로운 데이터 로드시 q-Cal 버튼을 다시 원래(흰색)로 변경
         GUI.btnQcal.BackgroundColor = 'w'; 
+        bGrid.BackgroundColor = [0.96 0.96 0.96];
+        bGrid.FontColor = [0.15 0.15 0.15];
         
         % 이미지 렌더링
         updateImage2();
@@ -2099,6 +2101,9 @@ btnSvX4.Layout.Column = 4;
             warning('GIXS2:GridRemoveFailed', 'Grid remover failed for %d frame(s): %s', numel(failedFrames), failMessage);
             uialert(GUI.main, sprintf('Grid remover failed for %d frame(s).\nFrames: %s', ...
                 numel(failedFrames), formatPGIXSFrameIndexList(failedFrames)), 'Grid Remove Warning', 'Icon', 'warning');
+        else
+            bGrid.BackgroundColor = [0.75 0.95 0.75];
+            bGrid.FontColor = [0.15 0.15 0.15];
         end
     end
 

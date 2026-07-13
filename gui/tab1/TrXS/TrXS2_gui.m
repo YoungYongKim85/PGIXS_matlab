@@ -321,6 +321,8 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         TX2.cYlim1.Value = double(min(param.VD)); TX2.cYlim2.Value = double(max(param.VD));
 
         GUI.btnQcal.BackgroundColor = [0.96 0.96 0.96]; 
+        btnGridR.BackgroundColor = [0.96 0.96 0.96];
+        btnGridR.FontColor = [0.15 0.15 0.15];
         updateImage2; param.correctionI = 0; 
     end
 
@@ -682,6 +684,9 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
             warning('TrXS2:GridRemoveFailed', 'Grid remover failed for %d frame(s): %s', numel(failedFrames), failMessage);
             uialert(GUI.main, sprintf('Grid remover failed for %d frame(s).\nFrames: %s', ...
                 numel(failedFrames), formatPGIXSFrameIndexList(failedFrames)), 'Grid Remove Warning', 'Icon', 'warning');
+        else
+            btnGridR.BackgroundColor = [0.75 0.95 0.75];
+            btnGridR.FontColor = [0.15 0.15 0.15];
         end
     end
 
