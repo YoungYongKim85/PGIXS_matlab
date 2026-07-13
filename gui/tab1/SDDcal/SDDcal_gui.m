@@ -417,7 +417,7 @@ param = struct(); param.data = []; param.hROI = [];
         param.Pixorder = fittedPixel;
         param.qval = param.SDDPeakCandidates.QValue(primaryRow);
         param.SDD = sddCandidateReport.FinalSDD;
-        sddInfo = computePGIXSSDDFromRing(fittedPixel, param.pixelSize, param.Energy, param.qval);
+        [~, sddInfo] = computePGIXSSDDFromRing(fittedPixel, param.pixelSize, param.Energy, param.qval);
         param.wavelength = sddInfo.Wavelength;
         GUI.txtSDD.Text = sprintf('Result: %.2f mm', param.SDD);
         
