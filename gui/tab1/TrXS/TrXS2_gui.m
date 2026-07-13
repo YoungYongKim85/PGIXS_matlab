@@ -12,7 +12,7 @@ clc;
 % ============================ GUI Setup ==================================
 GUI.main = uifigure('Name','Transmission X-ray Scattering Series v2.0',...
     'NumberTitle','off', 'Position',[50 50 1500 850], ...
-    'Color', [0.96 0.96 0.96], 'SizeChangedFcn', @Resize_Callback);
+    'Color', [0.96 0.96 0.96]);
 
 movegui(GUI.main, 'center');
 

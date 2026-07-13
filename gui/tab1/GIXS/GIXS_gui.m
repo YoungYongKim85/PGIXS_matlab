@@ -16,7 +16,7 @@ clc;
 % ============================ GUI Setup ==================================
 GUI.main = uifigure('Name','Grazing Incidence X-ray Scattering v2.0',...
     'NumberTitle','off', 'Position',[100 50 1400 850], ...
-    'Color', [0.96 0.96 0.96], 'SizeChangedFcn', @Resize_Callback);
+    'Color', [0.96 0.96 0.96]);
 
 movegui(GUI.main, 'center');
 
