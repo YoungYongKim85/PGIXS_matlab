@@ -31,6 +31,11 @@ function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,
     % Remove (0,0,0)
     zero_idx = (H==0 & K==0 & L==0);
     H(zero_idx) = []; K(zero_idx) = []; L(zero_idx) = [];
+
+    special_idx = resolveTrXSSpecialHKLMask(H, K, L, CrystSys);
+    H = H(special_idx);
+    K = K(special_idx);
+    L = L(special_idx);
     
     if isempty(H), error('No HKL indices generated within range.'); end
     
@@ -139,3 +144,12 @@ function rotated_pts = apply_rotation_matrix(pts, angles)
     rotated_pts = R * pts;
 end
 
+function keepMask = resolveTrXSSpecialHKLMask(H, K, L, crystalSystem)
+    keepMask = true(size(H));
+    switch char(crystalSystem)
+        case 'Layer'
+            keepMask = (H == 0) & (K == 0) & (L ~= 0);
+        case 'Hexagonal'
+            keepMask = (L == 0) & ((H ~= 0) | (K ~= 0));
+    end
+end
