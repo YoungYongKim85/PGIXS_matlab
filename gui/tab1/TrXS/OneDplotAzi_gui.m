@@ -210,7 +210,7 @@ function OneDplotAzi_gui(param, parentFig)
         end
     end
 
-    function Resize_Callback(src, ~)
+    function Resize_Callback(src, ~) %#ok<DEFNU>
         referenceHeight = 650; 
         
         original_units = get(src, 'Units');

@@ -16,7 +16,7 @@ function [out, report] = Gridremover(data, detectorType)
         return;
     end
 
-    if ~isnumeric(data) || ndims(data) ~= 2
+    if ~isnumeric(data) || ~ismatrix(data)
         report.Message = 'Gridremover expects a 2D numeric detector image.';
         return;
     end
