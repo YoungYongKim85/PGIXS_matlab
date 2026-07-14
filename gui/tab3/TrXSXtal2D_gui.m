@@ -3,18 +3,14 @@ function TrXSXtal2D_gui
 
 figW = 1500;
 figH = 900;
-main = figure('Name','TrXS-indexing',...
-    'NumberTitle','off', ...
-    'Units','pixels', ...
+coldf = [0.95 0.95 0.95]; %[0 1 1];%[0.95 0.95 0.95];
+main = uifigure('Name','TrXS-indexing', ...
     'Position',[100 100 figW figH], ...
-    'Color',[0.95 0.95 0.95], ...
-    'MenuBar','none', ...
-    'ToolBar','figure');
+    'Color',coldf);
+main.AutoResizeChildren = 'off';
 main.SizeChangedFcn = @Resize_Callback;
 main.WindowKeyPressFcn = @KeyPress_Callback;
 movegui(main, 'center');
-
-coldf = [0.95 0.95 0.95]; %[0 1 1];%[0.95 0.95 0.95];
 
 % tgroup = uitabgroup('Parent', main);
 % tab1 = uitab('Parent', tgroup, 'Title', '2D Analysis'); %tab for data analysis
@@ -2301,6 +2297,176 @@ Resize_Callback(main, []);
                             'ForegroundColor', [0.15 0.15 0.15]);
                 end
             catch
+            end
+        end
+    end
+
+    function h = uicontrol(varargin)
+        spec = parseControlSpec(varargin{:});
+        parentObj = spec.Parent;
+        if isempty(parentObj), parentObj = main; end
+
+        switch lower(spec.Style)
+            case 'text'
+                h = uilabel(parentObj);
+                h.Text = char(string(spec.String));
+                h.HorizontalAlignment = 'center';
+            case 'edit'
+                h = uieditfield(parentObj, 'text');
+                h.Value = char(string(spec.String));
+            case 'popupmenu'
+                h = uidropdown(parentObj);
+                h.Items = normalizeItems(spec.String);
+                if ~isempty(h.Items)
+                    valueIndex = max(1, min(numel(h.Items), round(double(spec.Value))));
+                    h.Value = h.Items{valueIndex};
+                end
+            case 'checkbox'
+                h = uicheckbox(parentObj);
+                h.Text = char(string(spec.String));
+                h.Value = logical(spec.Value);
+            otherwise
+                h = uibutton(parentObj, 'push');
+                h.Text = char(string(spec.String));
+        end
+
+        if ~isempty(spec.Position)
+            h.Position = convertControlPosition(parentObj, spec.Position, spec.Units);
+        end
+        applyControlProperty(h, 'FontSize', spec.FontSize);
+        applyControlProperty(h, 'FontWeight', spec.FontWeight);
+        applyControlProperty(h, 'BackgroundColor', spec.BackgroundColor);
+        applyControlProperty(h, 'ForegroundColor', spec.ForegroundColor);
+        if ~isempty(spec.Callback)
+            switch lower(spec.Style)
+                case 'pushbutton'
+                    h.ButtonPushedFcn = spec.Callback;
+                otherwise
+                    h.ValueChangedFcn = spec.Callback;
+            end
+        end
+    end
+
+    function spec = parseControlSpec(varargin)
+        spec = struct('Parent', [], 'Style', 'pushbutton', 'String', '', ...
+            'Units', 'pixels', 'Position', [], 'Callback', [], 'Value', 1, ...
+            'FontSize', [], 'FontWeight', [], 'BackgroundColor', [], ...
+            'ForegroundColor', []);
+        if mod(numel(varargin), 2) ~= 0
+            error('TrXSXtal2D:ControlSpec', 'uicontrol wrapper expects name-value pairs.');
+        end
+        for jj = 1:2:numel(varargin)
+            name = char(string(varargin{jj}));
+            value = varargin{jj + 1};
+            switch lower(name)
+                case 'parent', spec.Parent = value;
+                case 'style', spec.Style = char(string(value));
+                case 'string', spec.String = value;
+                case 'units', spec.Units = char(string(value));
+                case 'position', spec.Position = value;
+                case 'callback', spec.Callback = value;
+                case 'value', spec.Value = value;
+                case 'fontsize', spec.FontSize = value;
+                case 'fontweight', spec.FontWeight = value;
+                case 'backgroundcolor', spec.BackgroundColor = value;
+                case {'foregroundcolor', 'fontcolor'}, spec.ForegroundColor = value;
+            end
+        end
+    end
+
+    function items = normalizeItems(value)
+        if iscell(value)
+            items = cellfun(@(x)char(string(x)), value, 'UniformOutput', false);
+        elseif isstring(value)
+            items = cellstr(value);
+        elseif ischar(value)
+            items = cellstr(value);
+        else
+            items = {char(string(value))};
+        end
+    end
+
+    function pos = convertControlPosition(parentObj, normalizedPos, unitsValue)
+        pos = double(normalizedPos);
+        if strcmpi(unitsValue, 'normalized')
+            try
+                parentPos = getpixelposition(parentObj, true);
+                pos = [pos(1) * parentPos(3), pos(2) * parentPos(4), ...
+                    pos(3) * parentPos(3), pos(4) * parentPos(4)];
+            catch
+                pos = [pos(1) * figW, pos(2) * figH, pos(3) * figW, pos(4) * figH];
+            end
+        end
+    end
+
+    function applyControlProperty(obj, propName, propValue)
+        if isempty(propValue) || ~isprop(obj, propName), return; end
+        try
+            obj.(propName) = propValue;
+        catch
+        end
+    end
+
+    function out = get(obj, propName, varargin)
+        if nargin == 2
+            propText = char(string(propName));
+            if strcmpi(propText, 'String')
+                if isprop(obj, 'Value') && ~islogical(obj.Value)
+                    out = char(string(obj.Value));
+                    return;
+                elseif isprop(obj, 'Text')
+                    out = char(string(obj.Text));
+                    return;
+                elseif isprop(obj, 'Items')
+                    out = obj.Items;
+                    return;
+                end
+            elseif strcmpi(propText, 'Value')
+                if isprop(obj, 'Items') && isprop(obj, 'Value')
+                    idx = find(strcmp(obj.Items, obj.Value), 1);
+                    if isempty(idx), idx = 1; end
+                    out = idx;
+                    return;
+                elseif isprop(obj, 'Value')
+                    out = obj.Value;
+                    return;
+                end
+            end
+        end
+        out = builtin('get', obj, propName, varargin{:});
+    end
+
+    function set(obj, varargin)
+        if mod(numel(varargin), 2) ~= 0
+            builtin('set', obj, varargin{:});
+            return;
+        end
+        for jj = 1:2:numel(varargin)
+            propText = char(string(varargin{jj}));
+            propValue = varargin{jj + 1};
+            handled = false;
+            if strcmpi(propText, 'String')
+                if isprop(obj, 'Value') && ~islogical(obj.Value)
+                    obj.Value = char(string(propValue));
+                    handled = true;
+                elseif isprop(obj, 'Text')
+                    obj.Text = char(string(propValue));
+                    handled = true;
+                elseif isprop(obj, 'Items')
+                    obj.Items = normalizeItems(propValue);
+                    handled = true;
+                end
+            elseif strcmpi(propText, 'Value') && isprop(obj, 'Items') && isprop(obj, 'Value') && isnumeric(propValue)
+                valueIndex = max(1, min(numel(obj.Items), round(double(propValue))));
+                obj.Value = obj.Items{valueIndex};
+                handled = true;
+            end
+            if ~handled
+                try
+                    builtin('set', obj, propText, propValue);
+                catch
+                    try obj.(propText) = propValue; catch, end
+                end
             end
         end
     end
