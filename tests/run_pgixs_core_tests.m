@@ -752,14 +752,26 @@ function testCalculationInputParsers()
 end
 
 function testCrystalLatticeOverrides()
-    layerLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 90 90 90], 'Layer');
+    cubicSystem = applyPGIXSCrystalSystemConstraints([1 2 3 80 85 95], 'Cubic');
+    assert(isequal(cubicSystem, [1 1 1 90 90 90]), 'Cubic lattice constraint mismatch.');
+
+    hexSystem = applyPGIXSCrystalSystemConstraints([1 2 3 80 85 95], 'Hexagonal');
+    assert(isequal(hexSystem, [1 1 3 90 90 120]), 'Hexagonal lattice constraint mismatch.');
+
+    tetragonalSystem = applyPGIXSCrystalSystemConstraints([1 2 3 80 85 95], 'Tetragonal');
+    assert(isequal(tetragonalSystem, [1 1 3 90 90 90]), 'Tetragonal lattice constraint mismatch.');
+
+    rhombohedralSystem = applyPGIXSCrystalSystemConstraints([1 2 3 70 85 95], 'Rhombohedral');
+    assert(isequal(rhombohedralSystem, [1 1 1 70 70 70]), 'Rhombohedral lattice constraint mismatch.');
+
+    layerLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 80 85 95], 'Layer');
     assert(isequal(layerLattice, [1e10 1e10 3 90 90 90]), 'Layer lattice override mismatch.');
 
-    hexLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 90 90 120], 'Hexagonal');
-    assert(isequal(hexLattice, [1 2 1e10 90 90 120]), 'Hexagonal lattice override mismatch.');
+    hexLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 80 85 95], 'Hexagonal');
+    assert(isequal(hexLattice, [1 1 1e10 90 90 120]), 'Hexagonal lattice override mismatch.');
 
-    cubicLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 90 90 90], 'Cubic');
-    assert(isequal(cubicLattice, [1 2 3 90 90 90]), 'Cubic lattice should not be overridden.');
+    cubicLattice = applyPGIXSCrystalLatticeOverrides([1 2 3 80 85 95], 'Cubic');
+    assert(isequal(cubicLattice, [1 1 1 90 90 90]), 'Cubic lattice override mismatch.');
 end
 
 function testRadialPixelAxis()
@@ -1584,6 +1596,32 @@ function testXtalCalculatorStability()
     assert(all(isfinite(qhkl)) && all(isfinite(qzhkl)), ...
         'TrXS HKL calculator should return finite q values for a valid cubic cell.');
 
+    wideParam = struct();
+    [wideParam.Qy, wideParam.Qz] = meshgrid(linspace(-30, 30, 81), linspace(-30, 30, 81));
+    [~, ~, ~, qFull, hklFull] = qvalhkl_tr(wideParam, 10, 10, 10, ...
+        90, 90, 90, 3, 3, 3, -3, -3, -3, [0 0 0], 'Cubic', ...
+        'Pm-3m', '1', 2*pi, 0, 0, 1);
+    [qCollapsed, hklCollapsed] = collapsePGIXSDuplicateRings(qFull, hklFull);
+    assert(numel(qFull) > numel(qCollapsed) && size(hklFull, 1) > size(hklCollapsed, 1), ...
+        'TrXS HKL calculator should preserve full powder HKL candidates before display collapse.');
+
+    [~, ~, ~, ~, layerHKL] = qvalhkl_tr(wideParam, 1, 1, 1, ...
+        90, 90, 90, 3, 3, 3, -3, -3, -3, [0 0 0], 'Layer', ...
+        'primitive', '1', 2*pi, 0, 0, 1);
+    assert(all(layerHKL(:, 1) == 0 & layerHKL(:, 2) == 0 & layerHKL(:, 3) ~= 0), ...
+        'Layer TrXS HKL candidates should be constrained to 00L.');
+
+    [~, ~, ~, ~, hexHKL] = qvalhkl_tr(wideParam, 1, 1, 1, ...
+        90, 90, 120, 3, 3, 3, -3, -3, -3, [0 0 0], 'Hexagonal', ...
+        'P6/mmm', '1', 2*pi, 0, 0, 1);
+    assert(all(hexHKL(:, 3) == 0 & (hexHKL(:, 1) ~= 0 | hexHKL(:, 2) ~= 0)), ...
+        '2D Hexagonal TrXS HKL candidates should be constrained to HK0.');
+
+    [~, ~, ~, ~, hcpHKL] = qvalhkl_tr(wideParam, 1, 1, 1.633, ...
+        90, 90, 120, 3, 3, 3, -3, -3, -3, [0 0 0], 'HCP', ...
+        'P63/mmc', '1', 2*pi, 0, 0, 1);
+    assert(any(hcpHKL(:, 3) ~= 0), 'HCP TrXS HKL candidates should preserve 3D reflections.');
+
     qStep = 2 * pi / 10;
     [initialGuesses, bounds, guessReport] = buildPGIXSIndexingInitialGuesses('small');
     assert(isequal(bounds, [2 12]), 'Small indexing bounds mismatch.');
@@ -1615,6 +1653,21 @@ function testXtalCalculatorStability()
     assert(all(autoParams(1:3) >= autoReport.Bounds(1)) && all(autoParams(1:3) <= autoReport.Bounds(2)), ...
         'TrXS auto-index runner should keep lattice sizes inside selected bounds.');
     assert(strcmp(autoReport.SizeClass, 'Small'), 'TrXS auto-index runner size class mismatch.');
+
+    cubicContext = struct('Xtal', 'Cubic', 'Spg', 'Pm-3m', 'Choice', '1', ...
+        'Rotation', [0 0 0], 'HKLLimits', [2 2 2], 'K0', 2*pi, ...
+        'Specialplus', 0, 'EwaldEffect', 0);
+    [contextParams, contextError] = runPGIXSTrXSAutoIndex( ...
+        [qStep 0; 0 qStep], 'small', trxsFastOptions, trxsRefineOptions, cubicContext);
+    assert(contextError < 1e-5, 'TrXS context auto-index runner should fit simple cubic peaks.');
+    assert(abs(contextParams(1) - contextParams(2)) < 1e-12 && ...
+        abs(contextParams(1) - contextParams(3)) < 1e-12, ...
+        'TrXS context auto-index runner should preserve cubic lattice constraints.');
+
+    contextFitError = computePGIXSTrXSIndexFitError([10 12 14 80 85 95], ...
+        [qStep 0; 0 qStep], [2 20], cubicContext);
+    assert(abs(contextFitError) < 1e-10, ...
+        'TrXS context fit error should use constrained qvalhkl candidates.');
 
     [gixsAutoParams, gixsAutoError, gixsAutoReport] = runPGIXSGIXSAutoIndex( ...
         [qStep 0; 0 qStep], 'small', trxsFastOptions, trxsRefineOptions);
@@ -1919,6 +1972,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Processing', 'parsePGIXSLatticeParameters.m')
         fullfile(repoRoot, 'functions', 'Processing', 'parsePGIXSIndexLimit.m')
         fullfile(repoRoot, 'functions', 'Processing', 'parsePGIXSRotationVector.m')
+        fullfile(repoRoot, 'functions', 'Processing', 'applyPGIXSCrystalSystemConstraints.m')
         fullfile(repoRoot, 'functions', 'Processing', 'applyPGIXSCrystalLatticeOverrides.m')
         fullfile(repoRoot, 'functions', 'Processing', 'getPGIXSNormalizationValue.m')
         fullfile(repoRoot, 'functions', 'Processing', 'sanitizePGIXSScaleFactors.m')
