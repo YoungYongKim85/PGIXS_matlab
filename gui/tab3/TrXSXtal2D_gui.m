@@ -1,10 +1,18 @@
 function TrXSXtal2D_gui
+%#ok<*AGROW,*NASGU,*DEFNU,*ALIGN,*INUSD>
 
+figW = 1500;
+figH = 900;
 main = figure('Name','TrXS-indexing',...
-    'NumberTitle','off','units',...
-    'normalized','outerposition',[0.05 0.1 0.75 0.85]);
+    'NumberTitle','off', ...
+    'Units','pixels', ...
+    'Position',[100 100 figW figH], ...
+    'Color',[0.95 0.95 0.95], ...
+    'MenuBar','none', ...
+    'ToolBar','figure');
 main.SizeChangedFcn = @Resize_Callback;
 main.WindowKeyPressFcn = @KeyPress_Callback;
+movegui(main, 'center');
 
 coldf = [0.95 0.95 0.95]; %[0 1 1];%[0.95 0.95 0.95];
 
@@ -14,23 +22,25 @@ coldf = [0.95 0.95 0.95]; %[0 1 1];%[0.95 0.95 0.95];
 % ========================================================================
 % tab1 uicontrol =========================================================
 leftPanelData = uipanel('Parent',main,'Title','Control Panel','FontSize',...
-    12,'Units','Normalized','Position',[.02 0.1 .225 .9]);
+    12,'Units','Normalized','Position',[0.01 0.01 0.28 0.98], ...
+    'BackgroundColor',coldf);
 
 % Image position and plot ================================================
 Im2Dplot = uipanel('Parent',main,'Title','TrXS-Indexing','FontSize',...
-    12,'Units','Normalized','Position',[0.27 0.099 0.6 0.9],'BackgroundColor',[1 1 1]);
+    12,'Units','Normalized','Position',[0.30 0.10 0.69 0.89],'BackgroundColor',[1 1 1]);
 
-hAXtab = axes('Parent',Im2Dplot,'Position',[0.125 0.185 0.75 0.75]);
+hAXtab = axes('Parent',Im2Dplot,'Position',[0.06 0.08 0.90 0.86]);
 
 ImageController = uipanel('Parent',main,'Title','Image Controller','FontSize',...
-    10,'Units','Normalized','Position',[0.27 0.001 0.71 .105]);
+    10,'Units','Normalized','Position',[0.30 0.01 0.69 0.08], ...
+    'BackgroundColor',coldf);
 
 %=========================================================================
 % version
-uicontrol('Parent',main,'Style','text',...
+uicontrol('Parent',leftPanelData,'Style','text',...
     'String','Designed By Y.Y.Kim v1.0 (PLS-II BL3C)','Units','normalized',...
     'BackgroundColor',coldf,...
-    'Position',[0.01 0.012 0.12 0.035]);
+    'Position',[0.03 0.008 0.90 0.03]);
 
 %=========================================================================
 % Open data for tab1
@@ -470,13 +480,14 @@ uicontrol('Parent',ImageController,'String','Save Image','Units','normalized',..
     'FontSize',9,'Position',[0.885 0.25 0.1 0.7],...
     'Callback',@Savefile_Callback);
 
-%=========================================================================
+%========================================================================= 
 
 %=========================================================================
 % Functions
 % ========================================================================
 param.data = [];
 params.data = [];
+applyModernControlStyle(main);
 Resize_Callback(main, []);
 % open data
     function Opendata_Callback(~,~)
@@ -2249,6 +2260,48 @@ Resize_Callback(main, []);
                 set(obj, 'UserData', userData);
             end
             set(obj, 'FontSize', userData.BaseFontSize * scaleFactor);
+        end
+    end
+
+    function applyModernControlStyle(parentFig)
+        panels = findall(parentFig, 'Type', 'uipanel');
+        for ii = 1:numel(panels)
+            try
+                set(panels(ii), 'BackgroundColor', coldf, 'BorderType', 'line', ...
+                    'HighlightColor', [0.78 0.78 0.78], 'ShadowColor', [0.92 0.92 0.92]);
+            catch
+            end
+        end
+
+        controls = findall(parentFig, 'Type', 'uicontrol');
+        for ii = 1:numel(controls)
+            ctrl = controls(ii);
+            try
+                style = lower(get(ctrl, 'Style'));
+            catch
+                style = '';
+            end
+            try
+                switch style
+                    case 'pushbutton'
+                        set(ctrl, 'BackgroundColor', [0.90 0.94 0.98], ...
+                            'ForegroundColor', [0.05 0.12 0.20], ...
+                            'FontWeight', 'bold');
+                    case 'edit'
+                        set(ctrl, 'BackgroundColor', [1 1 1], ...
+                            'ForegroundColor', [0.05 0.05 0.05]);
+                    case 'popupmenu'
+                        set(ctrl, 'BackgroundColor', [1 1 1], ...
+                            'ForegroundColor', [0.05 0.05 0.05]);
+                    case 'checkbox'
+                        set(ctrl, 'BackgroundColor', coldf, ...
+                            'ForegroundColor', [0.05 0.05 0.05]);
+                    case 'text'
+                        set(ctrl, 'BackgroundColor', coldf, ...
+                            'ForegroundColor', [0.15 0.15 0.15]);
+                end
+            catch
+            end
         end
     end
 
