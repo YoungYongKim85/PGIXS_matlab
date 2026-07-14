@@ -286,8 +286,21 @@ param = initializeParams();
 % =========================================================================
 
     function runLoggedAction(actionName, callbackFcn)
+        ensurePGIXSFunctionsPath();
         runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
             @()summarizePGIXSState(param, actionName, struct('GUI', 'TrXS_gui')));
+    end
+
+    function ensurePGIXSFunctionsPath()
+        if exist('runPGIXSCallback', 'file') == 2
+            return;
+        end
+        guiDir = fileparts(mfilename('fullpath'));
+        repoRoot = fileparts(fileparts(fileparts(guiDir)));
+        functionsDir = fullfile(repoRoot, 'functions');
+        if isfolder(functionsDir)
+            addpath(genpath(functionsDir));
+        end
     end
 
     function [BW, userSelected] = selectROIMask(data2d, p)

@@ -250,8 +250,21 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
 % =========================================================================
 
     function runLoggedAction(actionName, callbackFcn)
+        ensurePGIXSFunctionsPath();
         runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
             @()summarizePGIXSState(param, actionName, struct('GUI', 'TrXS2_gui')));
+    end
+
+    function ensurePGIXSFunctionsPath()
+        if exist('runPGIXSCallback', 'file') == 2
+            return;
+        end
+        guiDir = fileparts(mfilename('fullpath'));
+        repoRoot = fileparts(fileparts(fileparts(guiDir)));
+        functionsDir = fullfile(repoRoot, 'functions');
+        if isfolder(functionsDir)
+            addpath(genpath(functionsDir));
+        end
     end
 
     % [통합 플롯 리프레시 콜백 - Subtraction 변동용]

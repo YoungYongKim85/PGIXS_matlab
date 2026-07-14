@@ -373,8 +373,21 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
 % =========================================================================
 
     function runLoggedAction(actionName, callbackFcn)
+        ensurePGIXSFunctionsPath();
         runPGIXSCallback(GUI.main, actionName, callbackFcn, ...
             @()summarizePGIXSState(param, actionName, struct('GUI', 'GIXS_gui')));
+    end
+
+    function ensurePGIXSFunctionsPath()
+        if exist('runPGIXSCallback', 'file') == 2
+            return;
+        end
+        guiDir = fileparts(mfilename('fullpath'));
+        repoRoot = fileparts(fileparts(fileparts(guiDir)));
+        functionsDir = fullfile(repoRoot, 'functions');
+        if isfolder(functionsDir)
+            addpath(genpath(functionsDir));
+        end
     end
 
     function pathset_Callback(~,~)
