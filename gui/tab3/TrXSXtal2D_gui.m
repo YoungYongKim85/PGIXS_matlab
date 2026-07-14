@@ -2142,8 +2142,22 @@ Resize_Callback(main, []);
             fastOptions = optimset('Display', 'off', 'TolX', 1e-2, 'MaxFunEvals', 500);
             refineOptions = optimset('Display', 'off', 'TolX', 1e-5, 'MaxFunEvals', 2500);
             waitbar(0.25, hWait, 'Optimizing lattice parameters...');
+            indexingContext = struct();
+            indexingContext.Xtal = XTal.CrystalSystem{get(XTal.hCrystsys,'Value')};
+            indexingContext.Spg = XTal.SpaceGroup{get(XTal.hSpaceGrp,'Value')};
+            indexingContext.Choice = XTal.Choice{get(XTal.hChoice,'Value')};
+            indexingContext.Rotation = parsePGIXSRotationVector({get(hXrot,'String'), get(hYrot,'String'), get(hZrot,'String')});
+            indexingContext.HKLLimits = [parsePGIXSIndexLimit(get(hHidx,'String')), ...
+                parsePGIXSIndexLimit(get(hKidx,'String')), parsePGIXSIndexLimit(get(hLidx,'String'))];
+            indexingContext.Specialplus = get(hSpecial,'Value');
+            indexingContext.EwaldEffect = get(hEwaldS,'Value');
+            if isfield(param, 'Wavelength') && isfinite(param.Wavelength) && param.Wavelength > 0
+                indexingContext.K0 = 2 * pi / param.Wavelength;
+            else
+                indexingContext.K0 = 2 * pi;
+            end
             [finalParams, finalError, autoReport] = runPGIXSTrXSAutoIndex( ...
-                [selectedQy, selectedQz], sizeClass, fastOptions, refineOptions);
+                [selectedQy, selectedQz], sizeClass, fastOptions, refineOptions, indexingContext);
 
             set(TX.haunit, 'String', num2str(finalParams(1), '%.2f'));
             set(TX.hbunit, 'String', num2str(finalParams(2), '%.2f'));
