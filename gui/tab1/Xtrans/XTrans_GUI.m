@@ -178,7 +178,7 @@ param = struct();
         xlabel(hAX, 'Photon Energy [keV]'); 
         
         if contains(GUI.hMode.Value, 'SLD')
-            ylabel(hAX, '$SLD\ (10^{-6}\ \AA^{-2})$', 'Interpreter', 'latex');
+            ylabel(hAX, 'SLD (10^{-6} A^{-2})', 'Interpreter', 'tex');
         else
             ylabel(hAX, GUI.hMode.Value, 'Interpreter', 'none');
         end

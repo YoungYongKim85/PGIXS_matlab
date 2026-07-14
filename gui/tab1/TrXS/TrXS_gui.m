@@ -393,8 +393,8 @@ param = initializeParams();
                 if isfield(param, 'Itrans')
                     imagesc(hAX, param.qy, param.qz, param.Itrans);
                     set(hAX, 'YDir', 'normal');
-                    xlabel(hAX, '$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                    ylabel(hAX, '$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                    xlabel(hAX, 'q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                    ylabel(hAX, 'q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
                 else
                     uialert(GUI.main, 'Please do Q-Map correction first!','Warning'); return; 
                 end

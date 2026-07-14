@@ -633,8 +633,8 @@ Resize_Callback(main, []);
             case 'Qy/Qz'
                 imagesc(param.qy,param.qz,param.dataq);
                 set(gca, 'YDir', 'normal');
-                xlabel('$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                ylabel('$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                xlabel('q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                ylabel('q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
         end
 
         axis image;
@@ -1291,8 +1291,8 @@ Resize_Callback(main, []);
 
                 set(gca, 'YDir', 'normal');
 
-                xlabel('$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                ylabel('$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                xlabel('q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                ylabel('q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
         end % end of Mapping
 
         axis image;
@@ -2057,8 +2057,8 @@ Resize_Callback(main, []);
 
                 set(gca, 'YDir', 'normal');
 
-                xlabel('$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                ylabel('$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                xlabel('q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                ylabel('q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
         end % end of Mapping
        
         axis image;

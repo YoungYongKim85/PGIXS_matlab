@@ -111,7 +111,7 @@ function HeatmapQ_gui(param)
     % ====================================================================
     function [d, lbl] = prepareData(p)
         d.X = []; d.Y = []; d.I = [];
-        lbl.X = ''; lbl.Y = '$q \ (\AA^{-1})$'; lbl.Z = 'Intensity (a.u.)';
+        lbl.X = ''; lbl.Y = 'q (A^{-1})'; lbl.Z = 'Intensity (a.u.)';
         
         if ~isfield(p, 'data1dstackN') || isempty(p.data1dstackN), return; end
         
@@ -195,15 +195,15 @@ function HeatmapQ_gui(param)
         
         if isfield(p, 'QMapMet') && isfield(p, 'ang')
             if p.ang == 0
-                 if strcmp(p.QMapMet, 'Qxy/Qz'), lbl.Y = '$q_{xy} \ (\AA^{-1})$';
-                 else, lbl.Y = '$q_{y} \ (\AA^{-1})$'; end
+                 if strcmp(p.QMapMet, 'Qxy/Qz'), lbl.Y = 'q_{xy} (A^{-1})';
+                 else, lbl.Y = 'q_{y} (A^{-1})'; end
             elseif p.ang == 90
-                 lbl.Y = '$q_{z} \ (\AA^{-1})$';
+                 lbl.Y = 'q_{z} (A^{-1})';
             else
-                 lbl.Y = '$q \ (\AA^{-1})$';
+                 lbl.Y = 'q (A^{-1})';
             end
         else
-            lbl.Y = '$q \ (\AA^{-1})$';
+            lbl.Y = 'q (A^{-1})';
         end
         
         if iscolumn(d.X), d.X = d.X'; end

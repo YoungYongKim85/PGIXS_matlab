@@ -963,7 +963,7 @@ btnSvX4.Layout.Column = 4;
         axis(hAX3, 'tight'); xlim(hAX3, [qmin, qmax]); 
         
         % [핵심 패치] 리눅스 치명타 에러(latex) 원천 배제
-        xlabel(hAX3, 'q (\AA^{-1})', 'Interpreter', 'tex'); ylabel(hAX3, 'Intensity (a.u.)');
+        xlabel(hAX3, 'q (A^{-1})', 'Interpreter', 'tex'); ylabel(hAX3, 'Intensity (a.u.)');
         
         switch GUI.hScale1D.Value, case 'Linear', set(hAX3, 'YScale', 'linear', 'XScale', 'linear'); case 'Logy', set(hAX3, 'YScale', 'log', 'XScale', 'linear'); case 'Logxy', set(hAX3, 'YScale', 'log', 'XScale', 'log'); end
         colormap(hAX3, colors); c = colorbar(hAX3); c.Label.String = [X_label, ' (', X_unit, ')'];
@@ -1624,7 +1624,7 @@ btnSvX4.Layout.Column = 4;
                     nFrame = size(Y_plot, 2); colors = jet(nFrame); hold(ax, 'on');
                     for ii = 1:nFrame, plot(ax, Q_plot, Y_plot(:,ii), 'Color', colors(ii,:), 'LineWidth', 1); end
                     hold(ax, 'off'); axis(ax, 'tight'); xlim(ax, [qmin, qmax]);
-                    xlabel(ax, '$q (\AA^{-1})$', 'Interpreter', 'latex'); ylabel(ax, 'Intensity (a.u.)');
+                    xlabel(ax, 'q (A^{-1})', 'Interpreter', 'tex'); ylabel(ax, 'Intensity (a.u.)');
                     switch GUI.hScale1D.Value
                         case 'Linear', set(ax, 'YScale', 'linear', 'XScale', 'linear');
                         case 'Logy',   set(ax, 'YScale', 'log',    'XScale', 'linear');

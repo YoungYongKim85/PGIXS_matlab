@@ -225,7 +225,7 @@ function OneDplotQline_gui(param, parentFig)
             xlabel(ax, 'Pixel');
         else
             if strcmp(p.Qunit, 'A^{-1}')
-                xlabel(ax, '$q, \textrm{\AA}^{-1}$','Interpreter','latex');
+                xlabel(ax, 'q, A^{-1}','Interpreter','tex');
             else
                 xlabel(ax, '$q, \textrm{nm}^{-1}$','Interpreter','latex');
             end
@@ -427,7 +427,7 @@ function OneDplotQline_gui(param, parentFig)
         end
     end
 
-    function Resize_Callback(src, ~)
+    function Resize_Callback(src, ~) %#ok<DEFNU>
         referenceHeight = 900; 
         
         original_units = get(src, 'Units');

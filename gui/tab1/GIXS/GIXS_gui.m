@@ -320,17 +320,17 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
                 end
             case 'Qxy/Qz'
                 if isfield(param,'qr')
-                    displayImage(param.qr, param.qz, param.Itrans, '$q_{xy}, \textrm{\AA}^{-1}$', '$q_z, \textrm{\AA}^{-1}$', 'normal');
-                    xlabel(hAX, '$q_{xy}, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                    ylabel(hAX, '$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                    displayImage(param.qr, param.qz, param.Itrans, 'q_{xy}, A^{-1}', 'q_z, A^{-1}', 'normal');
+                    xlabel(hAX, 'q_{xy}, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                    ylabel(hAX, 'q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
                 else
                     uialert(GUI.main, 'Please use Qy/Qz mode!!','Warning'); return;
                 end
             case 'Qy/Qz'
                 if isfield(param,'qy')
-                    displayImage(param.qy, param.qz, param.Itrans, '$q_y, \textrm{\AA}^{-1}$', '$q_z, \textrm{\AA}^{-1}$', 'normal');
-                    xlabel(hAX, '$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-                    ylabel(hAX, '$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+                    displayImage(param.qy, param.qz, param.Itrans, 'q_y, A^{-1}', 'q_z, A^{-1}', 'normal');
+                    xlabel(hAX, 'q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+                    ylabel(hAX, 'q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
                 else
                     uialert(GUI.main, 'Please use Qxy/Qz mode!!','Warning'); return;
                 end
@@ -867,8 +867,8 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         switch param.Mapping
             case 'Pixel', imagesc(hAX, param.HD, param.VD, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, 'Y, pixel'); ylabel(hAX, 'Z, pixel');
             case 'Alpha', imagesc(hAX, param.tth, param.af, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, '$2\theta_f$', 'Interpreter', 'latex', 'Fontname', 'TimesNewRoman'); ylabel(hAX, '$\alpha_f$', 'Interpreter', 'latex', 'Fontname', 'TimesNewRoman');
-            case 'Qxy/Qz', imagesc(hAX, param.qr, param.qz, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, '$q_{xy}, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman'); ylabel(hAX, '$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
-            case 'Qy/Qz', imagesc(hAX, param.qy, param.qz, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, '$q_y, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman'); ylabel(hAX, '$q_z, \textrm{\AA}^{-1}$','Interpreter','latex','Fontname','TimesNewRoman');
+            case 'Qxy/Qz', imagesc(hAX, param.qr, param.qz, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, 'q_{xy}, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman'); ylabel(hAX, 'q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
+            case 'Qy/Qz', imagesc(hAX, param.qy, param.qz, PlotAzi); set(hAX, 'YDir', 'normal'); xlabel(hAX, 'q_y, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman'); ylabel(hAX, 'q_z, A^{-1}','Interpreter','tex','Fontname','TimesNewRoman');
         end
         axis(hAX, 'image'); clim(hAX, [param.cmin, param.cmax]);
         applyPGIXSAxesColorScale(hAX, param.colorscale);

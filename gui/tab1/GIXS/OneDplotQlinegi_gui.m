@@ -272,7 +272,7 @@ function OneDplotQlinegi_gui(param, parentFig)
             end
             return;
         end
-        unit_str = '\textrm{\AA}^{-1}';
+        unit_str = 'A^{-1}';
         if strcmp(Qunit, 'nm^{-1}')
             unit_str = '\textrm{nm}^{-1}';
         end

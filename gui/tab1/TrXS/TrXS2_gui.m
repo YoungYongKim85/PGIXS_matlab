@@ -1089,7 +1089,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         axis(hAX3, 'tight');
 
         % [UI Unchaining] 한 줄에 단일 명령 수행
-        xlabel(hAX3, '$q, \textrm{\AA}^{-1}$', 'Interpreter', 'latex', 'FontSize', 12);
+        xlabel(hAX3, 'q, A^{-1}', 'Interpreter', 'tex', 'FontSize', 12);
         ylabel(hAX3, 'Intensity', 'FontSize', 12);
 
         try
