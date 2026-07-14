@@ -1,9 +1,11 @@
 function lattice = applyPGIXSCrystalLatticeOverrides(lattice, crystalSystem)
-% applyPGIXSCrystalLatticeOverrides  Apply PGIXS pseudo-infinite lattice conventions.
+% applyPGIXSCrystalLatticeOverrides  Apply crystal constraints and PGIXS 2D conventions.
 
     if numel(lattice) < 6
         return;
     end
+
+    lattice = applyPGIXSCrystalSystemConstraints(lattice, crystalSystem);
 
     switch char(crystalSystem)
         case 'Layer'

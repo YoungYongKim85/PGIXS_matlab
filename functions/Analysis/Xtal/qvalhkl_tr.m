@@ -1,8 +1,14 @@
-function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,~,Spg,Choice,k0,Specialplus,EwaldEffect,RandOri)
+function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,CrystSys,Spg,Choice,k0,Specialplus,EwaldEffect,RandOri)
 % qvalhkl_tr  Transmission HKL candidate calculator.
 
     if nargin < 21, RandOri = 0; end
-    latticeInputs = [a, b, c, alpha, beta, gamma];
+    latticeInputs = applyPGIXSCrystalLatticeOverrides([a, b, c, alpha, beta, gamma], CrystSys);
+    a = latticeInputs(1);
+    b = latticeInputs(2);
+    c = latticeInputs(3);
+    alpha = latticeInputs(4);
+    beta = latticeInputs(5);
+    gamma = latticeInputs(6);
     if any(~isfinite(latticeInputs)) || any([a, b, c] <= 0)
         error('PGIXS:InvalidLattice', ...
             'Lattice parameters must be finite and lattice lengths must be positive.');
