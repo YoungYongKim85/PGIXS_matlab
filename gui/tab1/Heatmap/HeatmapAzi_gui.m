@@ -119,84 +119,40 @@ function HeatmapAzi_gui(param)
         lbl.X = ''; lbl.Y = 'Azimuthal Angle (deg)'; lbl.Z = 'Intensity (a.u.)';
         
         if ~isfield(p, 'dataAzistackN') || isempty(p.dataAzistackN), return; end
+        d.I = p.dataAzistackN;
         
         % Y-axis: Angle
         if isfield(p, 'dataAzistack') && ~isempty(p.dataAzistack)
             d.Y = p.dataAzistack(:,1);
         end
         
-        % X-axis: Time or Temperature
-        expmode = '';
-        if isfield(p, 'expmode'), expmode = p.expmode; end
-        switch expmode
-            case 'Time'
-                if isfield(p, 'timestampinfo')
-                    t_unit = 's'; t_div = 1; t_offset = 1;
-                    if isfield(p, 'TimeUnit')
-                        switch p.TimeUnit
-                            case 'second', t_unit = 's'; t_div = 1;
-                            case 'min', t_unit = 'min'; t_div = 60;
-                            case 'hour', t_unit = 'h'; t_div = 3600;
-                        end
-                    end
-                    if isfield(p, 'TimeOffset')
-                        t_offset = p.TimeOffset;
-                    end
-                    
-                    % [버그 수정] 절대 시간(Epoch)을 첫 프레임 기준 상대 시간으로 변환
-                    ts1 = p.timestampinfo(1);
-                    d.X = ((p.timestampinfo - ts1) / t_div) + t_offset;
-                    
-                    lbl.X = ['Time (' t_unit ')'];
-                    d.I = p.dataAzistackN;
-                end
-                
-            case {'Temperature', 'LowTemp.'}
-                if isfield(p, 'temperatureinfo')
-                    if isfield(p, 'Tmode')
-                        switch p.Tmode
-                            case 'Temperature1', d.X = p.temperatureinfo(:,1);
-                            case 'Temperature2', d.X = p.temperatureinfo(:,2);
-                            case 'Temperature3', d.X = p.temperatureinfo(:,3);
-                            case 'Time'
-                                if isfield(p, 'timestampinfo') && ~isempty(p.timestampinfo)
-                                    t_unit = 's'; t_div = 1; t_offset = 1;
-                                    if isfield(p, 'TimeUnit')
-                                        switch p.TimeUnit
-                                            case 'second', t_unit = 's'; t_div = 1;
-                                            case 'min', t_unit = 'min'; t_div = 60;
-                                            case 'hour', t_unit = 'h'; t_div = 3600;
-                                        end
-                                    end
-                                    if isfield(p, 'TimeOffset'), t_offset = p.TimeOffset; end
-                                    ts1 = p.timestampinfo(1);
-                                    d.X = ((p.timestampinfo - ts1) / t_div) + t_offset;
-                                end
-                        end
-                    else
-                        d.X = p.temperatureinfo(:,1);
-                    end
-                    
-                    lbl.X = 'Temperature (^\circC)';
-                    if isfield(p, 'Tmode') && strcmp(p.Tmode, 'Time')
-                        if exist('t_unit', 'var')
-                            lbl.X = ['Time (' t_unit ')'];
-                        else
-                            lbl.X = 'Frame (#)';
-                        end
-                    end
-                    
-                    if isfield(p, 'OrderT') && p.OrderT == 1
-                        [d.X, idx] = sort(d.X);
-                        d.I = p.dataAzistackN(:, idx);
-                    else
-                        d.I = p.dataAzistackN;
-                    end
-                end
+        [xAxis, xLabel, xUnit] = computePGIXSExperimentXAxis(p, inferHeatmapMode(p));
+        if numel(xAxis) == size(d.I, 2)
+            orderT = isfield(p, 'OrderT') && logical(p.OrderT);
+            orderA = isfield(p, 'OrderA') && logical(p.OrderA);
+            expmode = ''; if isfield(p, 'expmode'), expmode = p.expmode; end
+            [d.X, idx] = sortPGIXSXAxis(xAxis, expmode, orderT, orderA);
+            d.I = d.I(:, idx);
+            lbl.X = formatAxisLabel(xLabel, xUnit);
         end
         
         if iscolumn(d.X), d.X = d.X'; end
         if isrow(d.Y), d.Y = d.Y'; end
+    end
+
+    function mode = inferHeatmapMode(p)
+        mode = 'TrXS';
+        if isfield(p, 'QMapMet') || isfield(p, 'Amode') || isfield(p, 'aivar') || ...
+                (isfield(p, 'temperatureinfo') && size(p.temperatureinfo, 2) >= 3)
+            mode = 'GIXS';
+        end
+    end
+
+    function label = formatAxisLabel(axisLabel, axisUnit)
+        label = axisLabel;
+        if ~isempty(axisUnit)
+            label = [axisLabel, ' (', axisUnit, ')'];
+        end
     end
 
     function [d, lbl] = normalizeHeatmapData(d, lbl, defaultYLabel)
@@ -292,13 +248,13 @@ function HeatmapAzi_gui(param)
         end
         
         axis(hAX1H, 'tight');
-        xlabel(hAX1H, plotLabels.X, 'FontSize', 12, 'FontWeight', 'bold');
-        ylabel(hAX1H, plotLabels.Y, 'FontSize', 12, 'FontWeight', 'bold');
+        xlabel(hAX1H, plotLabels.X, 'Interpreter', 'tex', 'FontSize', 12, 'FontWeight', 'bold');
+        ylabel(hAX1H, plotLabels.Y, 'Interpreter', 'tex', 'FontSize', 12, 'FontWeight', 'bold');
         
         if isLogZ && strcmp(plotTypeStr, 'Heatmap')
-            zlabel(hAX1H, ['Log(' plotLabels.Z ')'], 'FontSize', 11);
+            zlabel(hAX1H, ['Log(' plotLabels.Z ')'], 'Interpreter', 'tex', 'FontSize', 11);
         else
-            zlabel(hAX1H, plotLabels.Z, 'FontSize', 11); 
+            zlabel(hAX1H, plotLabels.Z, 'Interpreter', 'tex', 'FontSize', 11); 
         end
         
         xlim(hAX1H, xLim); ylim(hAX1H, yLim); clim(hAX1H, cLim); 
@@ -316,6 +272,7 @@ function HeatmapAzi_gui(param)
         else
             hcb.Label.String = plotLabels.Z; 
         end
+        hcb.Label.Interpreter = 'tex';
         
         set(hAX1H, 'FontSize', 12, 'LineWidth', 1.5, 'TickDir', 'out', 'Box', 'on');
         title(hAX1H, [param.FileName ' (Azimuthal)'], 'Interpreter', 'none');
