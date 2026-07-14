@@ -8,6 +8,7 @@ function HeatmapAzi_gui(param)
 
     % 1. 데이터 준비 (초기에 한 번만 수행)
     [plotData, plotLabels] = prepareData(param);
+    [plotData, plotLabels] = normalizeHeatmapData(plotData, plotLabels, 'Azimuthal index');
     
     if isempty(plotData.I)
         errordlg('No Azimuthal data found.', 'Data Error'); return;
@@ -87,18 +88,21 @@ function HeatmapAzi_gui(param)
     % Range Sub-grids (min, max edit fields side-by-side)
     subX = uigridlayout(cGrid, [1 2], 'Padding', [0 0 0 0], 'ColumnSpacing', 5);
     subX.Layout.Row = 2; subX.Layout.Column = 6;
-    HM.xMin = uieditfield(subX, 'numeric', 'Value', double(min(plotData.X)), 'ValueChangedFcn', @Updateplot_Callback);
-    HM.xMax = uieditfield(subX, 'numeric', 'Value', double(max(plotData.X)), 'ValueChangedFcn', @Updateplot_Callback);
+    [xMin0, xMax0] = finiteRange(plotData.X, [1 2]);
+    HM.xMin = uieditfield(subX, 'numeric', 'Value', xMin0, 'ValueChangedFcn', @Updateplot_Callback);
+    HM.xMax = uieditfield(subX, 'numeric', 'Value', xMax0, 'ValueChangedFcn', @Updateplot_Callback);
 
     subY = uigridlayout(cGrid, [1 2], 'Padding', [0 0 0 0], 'ColumnSpacing', 5);
     subY.Layout.Row = 2; subY.Layout.Column = 7;
-    HM.yMin = uieditfield(subY, 'numeric', 'Value', double(min(plotData.Y)), 'ValueChangedFcn', @Updateplot_Callback);
-    HM.yMax = uieditfield(subY, 'numeric', 'Value', double(max(plotData.Y)), 'ValueChangedFcn', @Updateplot_Callback);
+    [yMin0, yMax0] = finiteRange(plotData.Y, [1 2]);
+    HM.yMin = uieditfield(subY, 'numeric', 'Value', yMin0, 'ValueChangedFcn', @Updateplot_Callback);
+    HM.yMax = uieditfield(subY, 'numeric', 'Value', yMax0, 'ValueChangedFcn', @Updateplot_Callback);
 
     subC = uigridlayout(cGrid, [1 2], 'Padding', [0 0 0 0], 'ColumnSpacing', 5);
     subC.Layout.Row = 2; subC.Layout.Column = 8;
-    HM.cMin = uieditfield(subC, 'numeric', 'Value', double(min(plotData.I(:),[],'omitnan')), 'ValueChangedFcn', @Updateplot_Callback);
-    HM.cMax = uieditfield(subC, 'numeric', 'Value', double(max(plotData.I(:),[],'omitnan')), 'ValueChangedFcn', @Updateplot_Callback);
+    [cMin0, cMax0] = finiteRange(plotData.I(:), [0 1]);
+    HM.cMin = uieditfield(subC, 'numeric', 'Value', cMin0, 'ValueChangedFcn', @Updateplot_Callback);
+    HM.cMax = uieditfield(subC, 'numeric', 'Value', cMax0, 'ValueChangedFcn', @Updateplot_Callback);
 
     % Save Button (Rowspan 1 to 2)
     btnSave = uibutton(cGrid, 'Text', 'Save Plot', 'FontWeight', 'bold', 'BackgroundColor', [0.9 0.95 1], 'ButtonPushedFcn', @Saveplot_Callback);
@@ -117,10 +121,14 @@ function HeatmapAzi_gui(param)
         if ~isfield(p, 'dataAzistackN') || isempty(p.dataAzistackN), return; end
         
         % Y-axis: Angle
-        d.Y = p.dataAzistack(:,1);
+        if isfield(p, 'dataAzistack') && ~isempty(p.dataAzistack)
+            d.Y = p.dataAzistack(:,1);
+        end
         
         % X-axis: Time or Temperature
-        switch p.expmode
+        expmode = '';
+        if isfield(p, 'expmode'), expmode = p.expmode; end
+        switch expmode
             case 'Time'
                 if isfield(p, 'timestampinfo')
                     t_unit = 's'; t_div = 1; t_offset = 1;
@@ -151,25 +159,32 @@ function HeatmapAzi_gui(param)
                             case 'Temperature2', d.X = p.temperatureinfo(:,2);
                             case 'Temperature3', d.X = p.temperatureinfo(:,3);
                             case 'Time'
-                                % 시간 모드일 때 동일한 상대 시간 로직 적용
-                                t_unit = 's'; t_div = 1; t_offset = 1;
-                                if isfield(p, 'TimeUnit')
-                                    switch p.TimeUnit
-                                        case 'second', t_unit = 's'; t_div = 1;
-                                        case 'min', t_unit = 'min'; t_div = 60;
-                                        case 'hour', t_unit = 'h'; t_div = 3600;
+                                if isfield(p, 'timestampinfo') && ~isempty(p.timestampinfo)
+                                    t_unit = 's'; t_div = 1; t_offset = 1;
+                                    if isfield(p, 'TimeUnit')
+                                        switch p.TimeUnit
+                                            case 'second', t_unit = 's'; t_div = 1;
+                                            case 'min', t_unit = 'min'; t_div = 60;
+                                            case 'hour', t_unit = 'h'; t_div = 3600;
+                                        end
                                     end
+                                    if isfield(p, 'TimeOffset'), t_offset = p.TimeOffset; end
+                                    ts1 = p.timestampinfo(1);
+                                    d.X = ((p.timestampinfo - ts1) / t_div) + t_offset;
                                 end
-                                if isfield(p, 'TimeOffset'), t_offset = p.TimeOffset; end
-                                ts1 = p.timestampinfo(1);
-                                d.X = ((p.timestampinfo - ts1) / t_div) + t_offset;
                         end
                     else
                         d.X = p.temperatureinfo(:,1);
                     end
                     
                     lbl.X = 'Temperature (^\circC)';
-                    if isfield(p, 'Tmode') && strcmp(p.Tmode, 'Time'), lbl.X = ['Time (' t_unit ')']; end
+                    if isfield(p, 'Tmode') && strcmp(p.Tmode, 'Time')
+                        if exist('t_unit', 'var')
+                            lbl.X = ['Time (' t_unit ')'];
+                        else
+                            lbl.X = 'Frame (#)';
+                        end
+                    end
                     
                     if isfield(p, 'OrderT') && p.OrderT == 1
                         [d.X, idx] = sort(d.X);
@@ -182,6 +197,36 @@ function HeatmapAzi_gui(param)
         
         if iscolumn(d.X), d.X = d.X'; end
         if isrow(d.Y), d.Y = d.Y'; end
+    end
+
+    function [d, lbl] = normalizeHeatmapData(d, lbl, defaultYLabel)
+        if isempty(d.I), return; end
+        nRows = size(d.I, 1);
+        nCols = size(d.I, 2);
+        if isempty(d.Y) || numel(d.Y) ~= nRows || ~any(isfinite(double(d.Y(:))))
+            d.Y = (1:nRows)';
+            lbl.Y = defaultYLabel;
+        end
+        if isempty(d.X) || numel(d.X) ~= nCols || ~any(isfinite(double(d.X(:))))
+            d.X = 1:nCols;
+            lbl.X = 'Frame (#)';
+        end
+        if iscolumn(d.X), d.X = d.X'; end
+        if isrow(d.Y), d.Y = d.Y'; end
+    end
+
+    function [lo, hi] = finiteRange(values, fallback)
+        vals = double(values(:));
+        vals = vals(isfinite(vals));
+        if isempty(vals)
+            lo = fallback(1); hi = fallback(2);
+        else
+            lo = min(vals); hi = max(vals);
+            if lo >= hi
+                delta = max(abs(lo) * 0.01, 1);
+                lo = lo - delta; hi = hi + delta;
+            end
+        end
     end
 
     function Updateplot_Callback(~,~), Updateplot; end
