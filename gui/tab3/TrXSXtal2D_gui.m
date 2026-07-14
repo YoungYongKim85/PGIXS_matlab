@@ -851,7 +851,7 @@ Resize_Callback(main, []);
         Rotation = parsePGIXSRotationVector({get(hXrot,'String'), get(hYrot,'String'), get(hZrot,'String')});
 
         Specialplus = get(hSpecial,'Value');
-        % RandOri = get(hRandOri,'Value');
+        RandOri = get(hRandOri,'Value');
         HoldingIm = get(hHoldingS,'Value');
         EwaldEffect = get(hEwaldS,'Value');
 
@@ -876,7 +876,7 @@ Resize_Callback(main, []);
             param.Spgold = param.Spg;
             param.CHold = param.CH;
            
-            [params.qxhkl,params.qyhkl,params.qzhkl,params.qhkl,params.hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,param.Xtal,param.Spg,param.CH,k0,Specialplus,EwaldEffect);
+            [params.qxhkl,params.qyhkl,params.qzhkl,params.qhkl,params.hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,param.Xtal,param.Spg,param.CH,k0,Specialplus,EwaldEffect,RandOri);
 
         else % with holding
 
@@ -889,8 +889,8 @@ Resize_Callback(main, []);
                 gammao = param.unitold(6);
                 Rotationo = [param.unitold(7),param.unitold(8),param.unitold(9)];
 
-                [params.qxhklo,params.qyhklo,params.qzhklo,params.qhklo,params.hklo] = qvalhkl_tr(param,ao,bo,co,alphao,betao,gammao,hmax,kmax,lmax,hmin,kmin,lmin,Rotationo,param.Xtalold,param.Spgold,param.CHold,k0,Specialplus,EwaldEffect);
-                [params.qxhkl,params.qyhkl,params.qzhkl,params.qhkl,params.hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,param.Xtal,param.Spg,param.CH,k0,Specialplus,EwaldEffect);
+                [params.qxhklo,params.qyhklo,params.qzhklo,params.qhklo,params.hklo] = qvalhkl_tr(param,ao,bo,co,alphao,betao,gammao,hmax,kmax,lmax,hmin,kmin,lmin,Rotationo,param.Xtalold,param.Spgold,param.CHold,k0,Specialplus,EwaldEffect,RandOri);
+                [params.qxhkl,params.qyhkl,params.qzhkl,params.qhkl,params.hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,param.Xtal,param.Spg,param.CH,k0,Specialplus,EwaldEffect,RandOri);
 
             else
                 warndlg('please uncheck the Holding botton!!','Warning');
