@@ -1,9 +1,5 @@
-function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,CrystSys,Spg,Choice,k0,Specialplus,EwaldEffect,RandOri)
-% qvalhkl_tr: Transmission HKL Calculator (Visual De-cluttering)
-% 
-% [수정 내역]
-% 라벨 겹침 방지를 위해 '거리 기반 필터링' 적용
-% Tolerance(0.02) 이내의 근접한 점들은 하나로 합치고 대표 HKL만 표시
+function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,hmax,kmax,lmax,hmin,kmin,lmin,Rotation,~,Spg,Choice,k0,Specialplus,EwaldEffect,RandOri)
+% qvalhkl_tr  Transmission HKL candidate calculator.
 
     if nargin < 21, RandOri = 0; end
     latticeInputs = [a, b, c, alpha, beta, gamma];
@@ -22,10 +18,6 @@ function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,
     else
         Rotation = Rotation(1:3);
     end
-    
-    % 필터링 오차 허용 범위 (이 값을 키우면 더 많이 합쳐짐)
-    tol = 0.02; 
-
     % 1. HKL Grid Generation
     [H, K, L] = ndgrid(hmin:hmax, kmin:kmax, lmin:lmax);
     H = H(:); K = K(:); L = L(:);
@@ -45,44 +37,28 @@ function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,
     qz0 = H .* (q100 * cosd(br)) + K .* (q010 * cosd(ar)) + L .* q001;
     
     Q_vec = [qx0'; qy0'; qz0'];
+
+    % Reflection conditions are part of candidate generation and must be
+    % applied consistently to both spot and powder-ring calculations.
+    try
+        del_idx = ReflCond(H, K, L, Spg, Choice, Specialplus, alpha, beta, gamma);
+        H(del_idx) = [];
+        K(del_idx) = [];
+        L(del_idx) = [];
+        Q_vec(:, del_idx) = [];
+    catch ME
+        warning('PGIXS:ReflectionConditionFailed', ...
+            'Reflection condition filtering failed and was skipped: %s', ME.message);
+    end
     
     % ====================================================================
     % [CASE 1] Random Orientation (Powder Ring)
     % ====================================================================
     if RandOri == 1
-        % 회전 무시, |q| 크기 계산
+        % 회전 무시, |q| 크기 계산. Do not collapse duplicate rings here:
+        % the caller may need the full HKL list for tables/export.
         q_mag = sqrt(sum(Q_vec.^2, 1))';
-        
-        % [거리 기반 중복 제거]
-        % 1. 크기순 정렬
-        [q_sorted, sort_idx] = sort(q_mag);
-        hkl_sorted = [H(sort_idx), K(sort_idx), L(sort_idx)];
-        
-        q_final = [];
-        hkl_final = [];
-        
-        if ~isempty(q_sorted)
-            % 첫 번째 점 등록
-            q_final = [q_final; q_sorted(1)];
-            hkl_final = [hkl_final; hkl_sorted(1,:)];
-            
-            for i = 2:length(q_sorted)
-                % 이전 저장된 값과의 차이가 tol보다 크면 새로운 링으로 인정
-                if abs(q_sorted(i) - q_final(end)) > tol
-                    q_final = [q_final; q_sorted(i)];
-                    hkl_final = [hkl_final; hkl_sorted(i,:)];
-                else
-                    % 차이가 작으면(겹치면) HKL 중 더 '대표성' 있는 것으로 교체할지 결정
-                    % 기준: 인덱스 합이 더 작고 양수인 것 선호 (Simple index preferred)
-                    curr_hkl = hkl_sorted(i,:);
-                    prev_hkl = hkl_final(end,:);
-                    
-                    if sum(abs(curr_hkl)) < sum(abs(prev_hkl))
-                         hkl_final(end,:) = curr_hkl; % 더 간단한 인덱스로 교체
-                    end
-                end
-            end
-        end
+        hkl_all = [H, K, L];
         
         % 필터링: 디텍터 범위
         max_q_det = 100;
@@ -94,9 +70,9 @@ function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,
             end
         end
         
-        valid_idx = q_final <= max_q_det;
-        qhkl = q_final(valid_idx);
-        hkl  = hkl_final(valid_idx, :);
+        valid_idx = q_mag <= max_q_det;
+        qhkl = q_mag(valid_idx);
+        hkl  = hkl_all(valid_idx, :);
         
         qxhkl = zeros(size(qhkl)); qyhkl = qhkl; qzhkl = zeros(size(qhkl));
 
@@ -119,56 +95,7 @@ function [qxhkl,qyhkl,qzhkl,qhkl,hkl] = qvalhkl_tr(param,a,b,c,alpha,beta,gamma,
             H = H(mask); K = K(mask); L = L(mask);
         end
         
-        % 3. Reflection Condition
-        try
-            [del_idx] = ReflCond(H, K, L, Spg, Choice, Specialplus, alpha, beta, gamma);
-            H(del_idx)=[]; K(del_idx)=[]; L(del_idx)=[];
-            qx(del_idx)=[]; qy(del_idx)=[]; qz(del_idx)=[];
-        catch ME
-            warning('PGIXS:ReflectionConditionFailed', ...
-                'Reflection condition filtering failed and was skipped: %s', ME.message);
-        end
-        
-        % 4. 거리 기반 중복 제거 (Visual De-cluttering)
-        % (qy, qz) 평면에서의 거리 계산
-        
-        num_pts = length(qy);
-        keep_mask = false(num_pts, 1);
-        
-        if num_pts > 0
-            % 점들을 거리 기준으로 정렬하지 않고, 하나씩 검사하며 등록
-            % 단, HKL 인덱스가 간단한 순서로 먼저 정렬해두면 대표값 선정에 유리함
-            idx_sum = sum(abs([H, K, L]), 2);
-            [~, sort_order] = sort(idx_sum); % 인덱스 합이 작은 순서로 정렬
-            
-            qy = qy(sort_order); qz = qz(sort_order); qx = qx(sort_order);
-            H = H(sort_order); K = K(sort_order); L = L(sort_order);
-            
-            saved_qy = []; saved_qz = [];
-            
-            for i = 1:num_pts
-                curr_y = qy(i); curr_z = qz(i);
-                
-                if isempty(saved_qy)
-                    saved_qy = [saved_qy; curr_y];
-                    saved_qz = [saved_qz; curr_z];
-                    keep_mask(i) = true;
-                else
-                    % 기존 저장된 점들과의 거리 계산
-                    dists = sqrt((saved_qy - curr_y).^2 + (saved_qz - curr_z).^2);
-                    if all(dists > tol) % 모든 기존 점들과 거리가 tol보다 멀면 저장
-                        saved_qy = [saved_qy; curr_y];
-                        saved_qz = [saved_qz; curr_z];
-                        keep_mask(i) = true;
-                    end
-                end
-            end
-        end
-        
-        qx = qx(keep_mask); qy = qy(keep_mask); qz = qz(keep_mask);
-        H = H(keep_mask); K = K(keep_mask); L = L(keep_mask);
-
-        % 5. 범위 필터링
+        % 3. 범위 필터링
         valid_range = true(size(qx));
         if isfield(param, 'Qy') && ~isempty(param.Qy)
             qyMin = min(param.Qy(:), [], 'omitnan');
