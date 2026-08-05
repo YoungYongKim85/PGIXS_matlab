@@ -1045,12 +1045,12 @@ param = initializeParams();
         [filepath, ok, report] = ensurePGIXSSaveDir(param.Path, param.FileName, pwd);
         if ~ok, uialert(GUI.main, ['Save directory failed: ' report.Message], 'Error'); return; end
         
+        FN = param.FileName;
         selection = uiconfirm(GUI.main, 'Change filename?', ...
             'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
         if strcmp(selection, 'Yes')
-            FN = NewFileName(param.FileName);
-        else
-            FN = param.FileName;
+            [FN, nameOK] = promptPGIXSSaveFileBaseName(NewFileName(param.FileName), SaveForm, 'Save 2D Data As');
+            if ~nameOK, return; end
         end
         
         d = uiprogressdlg(GUI.main, 'Title', 'Saving', 'Message', 'Saving Images and Data...', 'Indeterminate', 'on');

@@ -1291,10 +1291,16 @@ btnSvX4.Layout.Column = 4;
             X_var = 1:size(Y_save,1); X_label = 'Frame';   % fallback
         end
         CombinedData = sanitizePGIXSExportMatrix([double(X_var(:)), double(Y_save)]);
-        
+
         FN = NewFileName(param.FileName);
-        BaseName = [FN, suffix]; SavePath = fullfile(saveDir, [BaseName, SaveForm]);
-        
+        BaseName = [FN, suffix];
+        selection = uiconfirm(GUI.main, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
+        if strcmp(selection, 'Yes')
+            [BaseName, nameOK] = promptPGIXSSaveFileBaseName(BaseName, SaveForm, 'Save Integration Data As');
+            if ~nameOK, return; end
+        end
+        SavePath = fullfile(saveDir, [BaseName, SaveForm]);
+
         try
             saved_struct.X_Axis = X_var(:); saved_struct.Intensity = Y_save; saved_struct.Matrix = CombinedData; saved_struct.X_Label = X_label;
             saved_struct = attachRetryMetadata(saved_struct);
@@ -1316,10 +1322,16 @@ btnSvX4.Layout.Column = 4;
         
         [X_var, X_label, ~] = getExperimentXAxis(param);
         CombinedData = sanitizePGIXSExportMatrix(double(X_var(:)));
-        
+
         FN = NewFileName(param.FileName);
-        BaseName = [FN, '_Xaxis']; SavePath = fullfile(saveDir, [BaseName, SaveForm]);
-        
+        BaseName = [FN, '_Xaxis'];
+        selection = uiconfirm(GUI.main, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
+        if strcmp(selection, 'Yes')
+            [BaseName, nameOK] = promptPGIXSSaveFileBaseName(BaseName, SaveForm, 'Save X-Axis Data As');
+            if ~nameOK, return; end
+        end
+        SavePath = fullfile(saveDir, [BaseName, SaveForm]);
+
         try
             saved_struct.X_Axis = CombinedData; saved_struct.X_Label = X_label;
             saved_struct = attachRetryMetadata(saved_struct);
@@ -1352,10 +1364,16 @@ btnSvX4.Layout.Column = 4;
         end
         CombinedData = sanitizePGIXSExportMatrix([double(Q_save), double(I_save)]);
         if hasSTD, CombinedDataSTD = sanitizePGIXSExportMatrix([double(Q_save), double(STD_save)]); end
-        
+
         FN = NewFileName(param.FileName);
-        BaseName = [FN, '_1Dplotstack']; SavePath = fullfile(saveDir, [BaseName, SaveForm]);
-        
+        BaseName = [FN, '_1Dplotstack'];
+        selection = uiconfirm(GUI.main, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
+        if strcmp(selection, 'Yes')
+            [BaseName, nameOK] = promptPGIXSSaveFileBaseName(BaseName, SaveForm, 'Save 1D Stack Data As');
+            if ~nameOK, return; end
+        end
+        SavePath = fullfile(saveDir, [BaseName, SaveForm]);
+
         try
             saved_struct.Q = Q_save; saved_struct.Intensity = I_save; saved_struct.Matrix = CombinedData; 
             saved_struct.X_Axis = X_var; saved_struct.X_Label = X_label;
@@ -1392,10 +1410,16 @@ btnSvX4.Layout.Column = 4;
             X_var = 1:size(I_save, 2); X_label = 'Frame';
         end
         CombinedData = sanitizePGIXSExportMatrix([double(Ang_save), double(I_save)]);
-        
+
         FN = NewFileName(param.FileName);
-        BaseName = [FN, '_Aziplotstack']; SavePath = fullfile(saveDir, [BaseName, SaveForm]);
-        
+        BaseName = [FN, '_Aziplotstack'];
+        selection = uiconfirm(GUI.main, 'Change filename?', 'Confirmation', 'Options', {'Yes','No'}, 'DefaultOption', 'No');
+        if strcmp(selection, 'Yes')
+            [BaseName, nameOK] = promptPGIXSSaveFileBaseName(BaseName, SaveForm, 'Save Azimuthal Stack Data As');
+            if ~nameOK, return; end
+        end
+        SavePath = fullfile(saveDir, [BaseName, SaveForm]);
+
         try
             saved_struct.Angle = Ang_save; saved_struct.Intensity = I_save; saved_struct.Matrix = CombinedData; 
             saved_struct.X_Axis = X_var; saved_struct.X_Label = X_label;
