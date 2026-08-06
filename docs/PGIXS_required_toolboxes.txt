@@ -1,0 +1,50 @@
+PGIXS MATLAB Suite - Required MATLAB Toolboxes
+================================================
+Generated: 2026-08-06
+Method: matlab.codetools.requiredFilesAndProducts() run against PGIXS.m
+        and every active .m file under functions/, gui/tab1, gui/tab3,
+        tools/ (MATLAB R2024a).
+
+Base requirement
+----------------
+- MATLAB (R2024a or later recommended)
+
+Required add-on toolboxes
+--------------------------
+1. Curve Fitting Toolbox
+   Used for: fittype/fit-based peak fitting in the 1D plot windows
+   (OneDplotQrad_gui.m, OneDplotQline_gui.m, OneDplotQlinegi_gui.m,
+   OneDplotpixel_gui.m, OneDplotpixelR_gui.m) and
+   functions/Calibration/fitPGIXSGaussianPeak.m.
+
+2. Image Processing Toolbox
+   Used for: interactive ROI tools (drawline, drawrectangle,
+   drawpolygon) in TrXS_gui.m, GIXS2_gui.m, TrXS2_gui.m,
+   GIXSXtal2D_gui.m, TrXSXtal2D_gui.m.
+
+3. Optimization Toolbox
+   Used for: fmincon-based crystal lattice indexing/fitting in
+   GIXSXtal2D_gui.m (and TrXSXtal2D_gui.m's equivalent helpers).
+
+4. Signal Processing Toolbox
+   Used for: findpeaks-based peak detection in SDDcal_gui.m and
+   functions/Calibration/analyzePGIXSSDDCandidates.m.
+
+5. Statistics and Machine Learning Toolbox
+   Used for: nlinfit-based nonlinear regression in SDDcal_gui.m.
+
+6. Parallel Computing Toolbox
+   Used for: optional 'UseParallel' acceleration paths in
+   GIXS2_gui.m and functions/Processing/processGIXSLinecutStack.m.
+   Not strictly required to run the app -- only needed if parallel
+   acceleration is actually invoked; without it MATLAB falls back to
+   serial execution or errors only if UseParallel is explicitly forced.
+
+Notes
+-----
+- Toolbox #6 (Parallel Computing) is the only one that is not a hard
+  requirement for basic operation; all others are needed for normal
+  GUI use (fitting, ROI drawing, indexing, SDD calibration).
+- This list was derived from static/dynamic MATLAB dependency
+  analysis of the current codebase (post file-cleanup, 2026-08-06) and
+  should be regenerated if major features are added or removed.
