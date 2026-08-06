@@ -24,7 +24,8 @@ function GIXSXtal2D_gui
     main = uifigure;
     main.Name = 'GIXS-indexing';
     main.NumberTitle = 'off';
-    main.Position = [100 100 figW figH]; 
+    main.Position = [100 100 figW figH];
+    main.AutoResizeChildren = 'off';
     main.SizeChangedFcn = @Resize_Callback;
     main.WindowKeyPressFcn = @KeyPress_Callback;
     main.Color = coldf;
