@@ -83,6 +83,8 @@ PGIXS core tests start
 PGIXS core tests passed
 ```
 
-Latest recorded date: 2026-07-11.
+Latest recorded date: 2026-08-06 -- full official suite (`run('tests/run_pgixs_core_tests.m')`), all 86 sub-tests, ran end-to-end and passed: `PGIXS core tests start` / `PGIXS core tests passed`, no failures.
 
-Note (2026-08-05): the `test/` fixture folder (e.g. `test/transmission/...`, `test/PTCDI13/...`) is still missing from this checkout, so `testImageIO` fails immediately and the full suite cannot run end-to-end here. This session's new/changed tests were instead verified by copying them into a standalone harness script and running that directly against the real `functions/` tree -- all passed. Re-run the full official suite once the `test/` folder is restored.
+The `test/` fixture folder is populated locally (gitignored, not tracked) from files already present under `testdata/`: `test/transmission/FA_140_10s_insitu_0001..0020.h5` (copied from `testdata/SAXSBattery/data/`) and `test/PTCDI13/20230608_sb_0001_standard.mat` (copied from `testdata/GrazingIncidence/PTCDI13/`). If this checkout is recreated elsewhere, redo that copy (or point `test/` at an equivalent local fixture set) before expecting `testImageIO`/`testH5FrameLoader`/`testH5Metadata`/`testMultishotIO` to pass.
+
+Prior to this, a broader ad-hoc code review pass (2026-08-06) was done: checkcode static analysis across all 240 active `.m` files found zero real errors (19 minor style-only nits, mostly in third-party `suptitle.m`); manual review of the core physics/correction modules (`Polarization.m`, `SolidAngle.m`, `Eff_correc.m`/`Eff_correc2.m`, `Qmaping_gi.m`/`Qmaping_tr.m`, `processGIXS2D.m`/`processTrXS2D.m`, SDD/peak-fit calibration helpers) found the sign/normalization conventions internally consistent and physically correct; no new bugs found beyond what this session already fixed (gap-adjacency buffer, `Anglecut1d_gi`/`_giplus` angle range, save-rename dialogs).
