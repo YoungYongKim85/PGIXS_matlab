@@ -29,7 +29,11 @@ x = single((1:m) - beampos_x);
 y = single(-((1:n) - beampos_y));
 
 bval = ceil(sqrt(single(m)^2 + single(n)^2));
-ang = param.ang;
+% Normalize to [0,360) so negative angles and angles beyond 180 deg (e.g.
+% 270) are handled instead of silently leaving xmin/xmax/ymin/ymax
+% undefined -- CakeCut_gi already supports the full 360 deg via
+% isPGIXSAngleInSector, so single-ray line cuts should too.
+ang = mod(single(param.ang), 360);
 
 % [2] Calculate line coordinates (ALL Rays: Starts from 0)
 if ang > 0 && ang < 90
@@ -53,6 +57,24 @@ elseif ang == 0
 elseif ang == 180
     y2val = single(param.zposmv);
     xmin = 0; xmax = max(x); ymin = y2val; ymax = y2val;
+elseif ang == 270
+    xmin = single(param.yposmv + eps); xmax = xmin;
+    ymin = 0; ymax = min(y);
+else
+    % ang in (180,270) or (270,360): the discrete per-quadrant search
+    % above only ever covered [0,180], so use a general direction/box
+    % intersection instead (equivalent geometry, works for any angle).
+    dx = -cosd(ang); dy = sind(ang);
+    tMax = Inf;
+    if dx > 1e-6,      tMax = min(tMax, double(max(x)) / double(dx));
+    elseif dx < -1e-6, tMax = min(tMax, double(min(x)) / double(dx)); end
+    if dy > 1e-6,      tMax = min(tMax, double(max(y)) / double(dy));
+    elseif dy < -1e-6, tMax = min(tMax, double(min(y)) / double(dy)); end
+    if ~isfinite(tMax) || tMax <= 0
+        linepos = zeros(1, 4, 'single'); line1d = zeros(0, 3, 'single'); return;
+    end
+    xmin = 0; ymin = 0;
+    xmax = single(tMax * dx); ymax = single(tMax * dy);
 end
 
 xq = linspace(xmin, xmax, bval);
@@ -81,7 +103,7 @@ end
 function qq = calculateQValues(param, x, y, xq, yq, ang)
     if ang == 0 || ang == 180
         qq = calcQ_Horizontal(param, x, y, xq, yq);
-    elseif ang == 90
+    elseif ang == 90 || ang == 270
         qq = calcQ_Vertical(param, x, y, xq, yq);
     else
         qq = calcQ_Diagonal(param, x, y, xq, yq);
@@ -156,9 +178,9 @@ function linepos = calculateLinePos(ang, ~, xmax, ~, ymax, param)
     linepos = zeros(1, 4, 'single');
     if ang == 0 || ang == 180
         linepos(1) = 0; linepos(2) = fix(xmax); linepos(3) = param.zposmv; linepos(4) = param.zposmv;
-    elseif ang == 90
+    elseif ang == 90 || ang == 270
         linepos(1) = param.yposmv + eps; linepos(2) = param.yposmv + eps; linepos(3) = 0; linepos(4) = fix(ymax);
     else
-        linepos(1) = 0; linepos(2) = fix(xmax); linepos(3) = 0; linepos(4) = fix(ymax); 
+        linepos(1) = 0; linepos(2) = fix(xmax); linepos(3) = 0; linepos(4) = fix(ymax);
     end
 end

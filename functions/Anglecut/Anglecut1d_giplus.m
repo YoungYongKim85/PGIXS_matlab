@@ -24,6 +24,13 @@ x = single((1:m) - beampos_x);
 y = single(-((1:n) - beampos_y)); 
 
 bval = ceil(sqrt(m^2 + n^2));
+% Normalize to [0,360) so negative angles and angles beyond 180 deg (e.g.
+% 270) are handled instead of silently degenerating to a zero-length ray
+% -- CakeCut_gi already supports the full 360 deg via
+% isPGIXSAngleInSector, so single-ray line cuts should too. Written back
+% into param.ang (local copy only) so selectQGrids below, which reads
+% param.ang directly, sees the same normalized value.
+param.ang = mod(single(param.ang), 360);
 ang = param.ang;
 [xmin, xmax, ymin, ymax] = calculateLineCoords(ang, x, y, param.yposmv, param.zposmv);
 
@@ -61,6 +68,8 @@ function [xmin, xmax, ymin, ymax] = calculateLineCoords(ang, x, y, yposmv, zposm
         xmin = 0; xmax = max(x); ymin = single(zposmv); ymax = single(zposmv);
     elseif ang == 90
         xmin = single(yposmv + eps); xmax = xmin; ymin = 0; ymax = max(y);
+    elseif ang == 270
+        xmin = single(yposmv + eps); xmax = xmin; ymin = 0; ymax = min(y);
     elseif ang > 0 && ang < 90
         tanAng = single(tand(ang)); y2 = -x * tanAng;
         validMask = (x < 0) & (y2 > min(y)) & (y2 <= max(y));
@@ -74,7 +83,20 @@ function [xmin, xmax, ymin, ymax] = calculateLineCoords(ang, x, y, yposmv, zposm
         if isempty(validIdx), xmin=0; xmax=0; ymin=0; ymax=0; return; end
         xmin = 0; xmax = x(validIdx); ymin = 0; ymax = y2(validIdx);
     else
-        xmin=0; xmax=0; ymin=0; ymax=0;
+        % ang in (180,270) or (270,360): the discrete per-quadrant search
+        % above only ever covered [0,180], so use a general direction/box
+        % intersection instead (equivalent geometry, works for any angle).
+        dx = -cosd(ang); dy = sind(ang);
+        tMax = Inf;
+        if dx > 1e-6,      tMax = min(tMax, double(max(x)) / double(dx));
+        elseif dx < -1e-6, tMax = min(tMax, double(min(x)) / double(dx)); end
+        if dy > 1e-6,      tMax = min(tMax, double(max(y)) / double(dy));
+        elseif dy < -1e-6, tMax = min(tMax, double(min(y)) / double(dy)); end
+        if ~isfinite(tMax) || tMax <= 0
+            xmin=0; xmax=0; ymin=0; ymax=0; return;
+        end
+        xmin = 0; ymin = 0;
+        xmax = single(tMax * dx); ymax = single(tMax * dy);
     end
 end
 
@@ -106,7 +128,7 @@ function [Grid_Q, Grid_Std, Grid_Min, Grid_Max] = selectQGrids(param, ~, ~)
         end
         Grid_Std = TargetStd;
 
-    elseif ang == 90
+    elseif ang == 90 || ang == 270
         TargetQ = single(param.Qz); TargetStd = single(param.Qz_std);
         switch Mapping
             case {'Pixel', 'Alpha'}
@@ -135,7 +157,7 @@ end
 function linepos = getDrawLinePos(ang, ~, xmax, ~, ymax, param)
     if ang == 0 || ang == 180
         linepos = [0, fix(xmax), param.zposmv, param.zposmv];
-    elseif ang == 90
+    elseif ang == 90 || ang == 270
         linepos = [param.yposmv+eps, param.yposmv+eps, 0, fix(ymax)];
     else
         linepos = [0, fix(xmax), 0, fix(ymax)];

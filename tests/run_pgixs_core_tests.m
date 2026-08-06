@@ -67,6 +67,7 @@ function run_pgixs_core_tests()
     testGIXSLinecutStack();
     testTrXSLinecutGapAlignment();
     testAnglecutGapBuffer();
+    testAnglecutGiFullAngleRange();
     testGIXSAzimuthalStack();
     testGIXSAzimuthalStackGapBuffer();
     testProcessing();
@@ -1307,6 +1308,56 @@ function testAnglecutGapBuffer()
     assert(~isempty(finiteI), 'Line cut should retain valid samples with a gap buffer applied.');
     assert(all(abs(double(finiteI) - 10) < 1e-6), ...
         'Line cut should exclude gap-adjacent edge-biased pixels using the detector mask, not just the true gap.');
+end
+
+function testAnglecutGiFullAngleRange()
+    % Anglecut1d_gi/_giplus used to only support ang in [0,180] deg
+    % (undefined xmin/xmax/ymin/ymax -> crash, or a degenerate
+    % zero-length ray for _giplus, outside that range). They now
+    % normalize ang to [0,360) and handle the full circle, matching
+    % CakeCut_gi. Check previously-broken angles (270, an alias of 270
+    % via negative/>360 input, and off-axis diagonals) plus the
+    % already-supported angles as a regression guard.
+    n = 41; c = 21;
+    data = single(10 * ones(n, n));
+    p = struct();
+    p.data = data;
+    p.bpos = single([c, c]);
+    p.yposmv = single(0);
+    p.zposmv = single(0);
+    p.QMapMet = 'Qxy/Qz';
+    p.Mapping = 'Pixel';
+    [x, y] = meshgrid(single((1:n) - c), single(-((1:n) - c)));
+    p.Q = sqrt(x.^2 + y.^2);
+    p.Qr = x; p.Qz = y;
+    p.Q_std = zeros(n, n, 'single'); p.Qz_std = zeros(n, n, 'single');
+    p.Qr_std = zeros(n, n, 'single'); p.Qy_std = zeros(n, n, 'single');
+    p.Qrmin = x; p.Qrmax = x; p.Qzmin = y; p.Qzmax = y; p.Qymin = x; p.Qymax = x;
+
+    angles = [0, 45, 90, 180, 225, 270, 315, -90, 630];
+    for ii = 1:numel(angles)
+        p.ang = single(angles(ii));
+
+        [~, line1d] = Anglecut1d_gi(p);
+        assert(~isempty(line1d), sprintf('Anglecut1d_gi should return samples at ang=%g.', angles(ii)));
+        assert(all(abs(double(line1d(:, 3)) - 10) < 1e-6), ...
+            sprintf('Anglecut1d_gi intensity should stay uniform at ang=%g.', angles(ii)));
+
+        [~, line1dPlus] = Anglecut1d_giplus(p);
+        assert(~isempty(line1dPlus), sprintf('Anglecut1d_giplus should return samples at ang=%g.', angles(ii)));
+        assert(all(abs(double(line1dPlus(:, 3)) - 10) < 1e-6), ...
+            sprintf('Anglecut1d_giplus intensity should stay uniform at ang=%g.', angles(ii)));
+    end
+
+    % ang=270 and ang=-90 (its normalized alias) must trace the same ray.
+    p.ang = single(270);
+    [~, line270] = Anglecut1d_gi(p);
+    p.ang = single(-90);
+    [~, lineNeg90] = Anglecut1d_gi(p);
+    assert(isequal(size(line270), size(lineNeg90)), ...
+        'ang=270 and ang=-90 should normalize to the same ray length.');
+    assert(max(abs(double(line270(:,1)) - double(lineNeg90(:,1)))) < 1e-4, ...
+        'ang=270 and ang=-90 should normalize to the same ray distances.');
 end
 
 function testGIXSAzimuthalStack()
