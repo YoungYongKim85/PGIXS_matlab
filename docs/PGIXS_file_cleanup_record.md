@@ -3,6 +3,55 @@
 This record tracks cleanup actions that were completed during the MATLAB
 R2024a stabilization pass.
 
+## Removed Inactive Tab2 / Legacy Root GUIs and Their Sole Dependents (2026-08-06)
+
+Removed after a repo-wide zero-reference scan (every active `.m` file's
+function name cross-checked against every other active/test/tool file) and
+user confirmation. `PGIXS.m` only ever adds `functions/`, `gui/tab1/`, and
+`gui/tab3/` to the path (`gui` root and `gui/tab2` are never added), and
+`tests/run_pgixs_core_tests.m` already had a regression test
+(`testInactiveGuiFilesAreNotReferenced`) enforcing that no active file
+references these names -- this cleanup just removes the dead files
+themselves instead of merely guarding against referencing them.
+
+Removed (9 files, already-documented-inactive GUIs):
+
+- `gui/OneDplotQlinegitab2_gui.m`
+- `gui/OneDplotQlinehkl_gui.m`
+- `gui/OneDplotQradwhkl_gui.m`
+- `gui/tab2/AreaViewer.m`
+- `gui/tab2/AziAnalysis_gui.m`
+- `gui/tab2/Fit1d_gui.m`
+- `gui/tab2/ParamViewer.m`
+- `gui/tab2/Plot1d_gui.m`
+- `gui/tab2/Xtal1D_gui.m`
+
+Removed (60 files, `functions/Analysis/Fittools/` numbered combo fit
+functions `{GFt,LFt,PVFt}{1-10}{LB,exB}.m`): their only callers, found via
+`fittype('GFt1LB(...)')`-style string construction, were the two files
+above (`Fit1d_gui.m`, `AziAnalysis_gui.m`) -- once those are gone these had
+no remaining path either. The 4 base shape primitives they wrapped
+(`Gaussian.m`, `Lorentzian.m`, `pseudoVoigt.m`, `expBKG.m`) were kept: they
+are directly exercised by `testFitToolFunctions()` and are small, generic,
+reusable building blocks independent of the removed combo-fit GUI.
+
+Removed (1 file): `functions/Refrac/suptitle.m` -- a third-party
+subplot-supertitle utility with zero references anywhere in the repo
+(not even from the removed Tab2 files).
+
+Kept despite having zero internal references (false positives from the
+zero-reference scan -- both are intentional one-off maintenance scripts a
+developer runs manually, not code meant to be called from the app):
+
+- `functions/Others/MaskMaker.m` -- regenerates `EigerMask.mat`.
+- `functions/Refrac/CalculateRefrac.m` -- regenerates
+  `KaptonAttLength8-30.mat` / `SiAttLength8-30.mat`, which
+  `computePGIXSDetectorCorrectionFactor.m` loads at runtime.
+
+Verification: `run('tests/run_pgixs_core_tests.m')` passed (86/86) after
+the deletion, with local `test/` and `manual_qa_samples/*.mat` fixtures in
+place.
+
 ## Removed Tab3 Backup Files
 
 Removed on 2026-07-07 after the user requested deletion of unnecessary files:
