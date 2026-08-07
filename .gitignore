@@ -34,3 +34,6 @@ venv/
 tmp/
 temp/
 tools/bin/
+
+# Generated distribution package (regenerate via dist/build_dist_package.m)
+dist/build/
