@@ -204,7 +204,7 @@ TX2.aziMin = uieditfield(sub4, 'numeric', 'Value', 0, 'ValueChangedFcn', @update
 
 btnNormAzi = uibutton(cg2, 'Text', 'Normalize', 'ButtonPushedFcn', @NormalFactorAzi_Callback); btnNormAzi.Layout.Row = [1 2];
 btnHeatAzi = uibutton(cg2, 'Text', 'Heatmap', 'ButtonPushedFcn', @updateAziHeatmap_Callback); btnHeatAzi.Layout.Row = [1 2];
-GUI.hSForm2 = uidropdown(cg2, 'Items', SForm); GUI.hSForm2.Layout.Row = [1 2];
+GUI.hSForm2 = uidropdown(cg2, 'Items', SForm, 'Value', '.dat'); GUI.hSForm2.Layout.Row = [1 2];
 btnSaveAzi = uibutton(cg2, 'Text', 'Save', 'ButtonPushedFcn', @Saveget2_Callback); btnSaveAzi.Layout.Row = [1 2];
 
 % [Plot 3] Wave Vector Plot (Right Up)
@@ -223,7 +223,7 @@ TX2.qMin = uieditfield(sub5, 'numeric', 'Value', 0.01, 'ValueChangedFcn', @updat
 btnNorm1D = uibutton(cg3, 'Text', 'Normalize', 'ButtonPushedFcn', @NormalFactor_Callback); btnNorm1D.Layout.Row = [1 2];
 btnInt1D = uibutton(cg3, 'Text', 'Integ.', 'ButtonPushedFcn', @updateIntplot_Callback); btnInt1D.Layout.Row = [1 2];
 btnHeat1D = uibutton(cg3, 'Text', 'Heatmap', 'ButtonPushedFcn', @updateQHeatmap_Callback); btnHeat1D.Layout.Row = [1 2];
-GUI.hSForm3 = uidropdown(cg3, 'Items', SForm); GUI.hSForm3.Layout.Row = [1 2];
+GUI.hSForm3 = uidropdown(cg3, 'Items', SForm, 'Value', '.dat'); GUI.hSForm3.Layout.Row = [1 2];
 btnSave1D = uibutton(cg3, 'Text', 'Save', 'ButtonPushedFcn', @Saveget3_Callback); btnSave1D.Layout.Row = [1 2];
 
 % [Plot 4] Integration Plot (Right Down)
@@ -241,7 +241,7 @@ GUI.hNormal5.Layout.Row = 2; GUI.hNormal5.Layout.Column = 1;
 btnPlotROI = uibutton(cg4, 'Text', 'Plot ROI', 'ButtonPushedFcn', @PlotROI_Callback); btnPlotROI.Layout.Row = [1 2]; btnPlotROI.Layout.Column = 2;
 btnNormROI = uibutton(cg4, 'Text', 'Norm ROI', 'ButtonPushedFcn', @NormalROII_Callback); btnNormROI.Layout.Row = [1 2]; btnNormROI.Layout.Column = 3;
 lblSForm4 = uilabel(cg4, 'Text', 'Save Format:'); lblSForm4.Layout.Row = 1; lblSForm4.Layout.Column = 4;
-GUI.hSForm4 = uidropdown(cg4, 'Items', SForm); GUI.hSForm4.Layout.Row = 2; GUI.hSForm4.Layout.Column = 4;
+GUI.hSForm4 = uidropdown(cg4, 'Items', SForm, 'Value', '.dat'); GUI.hSForm4.Layout.Row = 2; GUI.hSForm4.Layout.Column = 4;
 btnSaveData4 = uibutton(cg4, 'Text', 'Save Data', 'ButtonPushedFcn', @Saveget4_Callback); btnSaveData4.Layout.Row = 1; btnSaveData4.Layout.Column = 5;
 btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Callback); btnSaveX4.Layout.Row = 2; btnSaveX4.Layout.Column = 5;
 

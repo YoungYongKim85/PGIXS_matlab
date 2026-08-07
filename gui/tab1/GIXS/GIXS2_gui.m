@@ -307,7 +307,7 @@ btnNm3.Layout.Row = 2; btnNm3.Layout.Column = 3;
 btnHm3 = uibutton(cg3, 'Text', 'Heatmap', 'ButtonPushedFcn', @updateQHeatmap_Callback);
 btnHm3.Layout.Row = 2; btnHm3.Layout.Column = 4;
 
-GUI.hSForm1D = uidropdown(cg3, 'Items', {'.mat', '.dat', '.csv'});
+GUI.hSForm1D = uidropdown(cg3, 'Items', {'.mat', '.dat', '.csv'}, 'Value', '.dat');
 GUI.hSForm1D.Layout.Row = 2; GUI.hSForm1D.Layout.Column = 5;
 
 btnSv3 = uibutton(cg3, 'Text', 'Save 1D', 'BackgroundColor', [0.9 0.95 1], 'ButtonPushedFcn', @Saveget3_Callback);
@@ -349,7 +349,7 @@ btnNm2.Layout.Row = 2; btnNm2.Layout.Column = 3;
 btnHm2 = uibutton(cg2, 'Text', 'Heatmap', 'ButtonPushedFcn', @updateAziHeatmap_Callback);
 btnHm2.Layout.Row = 2; btnHm2.Layout.Column = 4;
 
-GUI.hSFormAzi = uidropdown(cg2, 'Items', {'.mat', '.dat', '.csv'});
+GUI.hSFormAzi = uidropdown(cg2, 'Items', {'.mat', '.dat', '.csv'}, 'Value', '.dat');
 GUI.hSFormAzi.Layout.Row = 2; GUI.hSFormAzi.Layout.Column = 5;
 
 btnSv2 = uibutton(cg2, 'Text', 'Save Azi', 'BackgroundColor', [0.9 0.95 1], 'ButtonPushedFcn', @Saveget2_Callback);
@@ -390,7 +390,7 @@ btnRp4 = uibutton(cg4, 'Text', 'Re-Plot Series', 'ButtonPushedFcn', @ReplotInt_C
 btnRp4.Layout.Row = 2;
 btnRp4.Layout.Column = 1;
 
-GUI.hSFormInt = uidropdown(cg4, 'Items', {'.mat', '.dat', '.csv'});
+GUI.hSFormInt = uidropdown(cg4, 'Items', {'.mat', '.dat', '.csv'}, 'Value', '.dat');
 GUI.hSFormInt.Layout.Row = 2;
 GUI.hSFormInt.Layout.Column = 2;
 

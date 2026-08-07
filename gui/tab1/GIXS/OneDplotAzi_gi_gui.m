@@ -86,7 +86,7 @@ function OneDplotAzi_gi_gui(param, parentFig)
     btnUpdate = uibutton(cg, 'Text', 'Update', 'ButtonPushedFcn', @Updateplot_Callback); 
     btnUpdate.Layout.Row = [1 2]; btnUpdate.Layout.Column = 7;
     
-    GUI.hSForm = uidropdown(cg, 'Items', SFormList); 
+    GUI.hSForm = uidropdown(cg, 'Items', SFormList, 'Value', '.dat');
     GUI.hSForm.Layout.Row = 2; GUI.hSForm.Layout.Column = 8;
     
     btnSave = uibutton(cg, 'Text', 'Save Plot', 'FontWeight', 'bold', 'BackgroundColor', [0.9 0.95 1], 'ButtonPushedFcn', @Saveplot_Callback);

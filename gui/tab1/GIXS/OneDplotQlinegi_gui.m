@@ -116,7 +116,7 @@ function OneDplotQlinegi_gui(param, parentFig)
     btnUpdate.Layout.Row = [1 2]; btnUpdate.Layout.Column = 9;
     
     % [수정] 겹쳐있던 포맷 드롭다운을 10번째 칸에 안정적으로 배치
-    GUI.hSForm = uidropdown(cg, 'Items', SFormList); 
+    GUI.hSForm = uidropdown(cg, 'Items', SFormList, 'Value', '.dat');
     GUI.hSForm.Layout.Row = 2; GUI.hSForm.Layout.Column = 10;
 
     % [수정] 메인 그리드 위에 떠서 가려버리던 Save 버튼을 ctrlPanel(cg) 내부 11번째 칸으로 이동
