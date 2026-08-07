@@ -37,3 +37,9 @@ tools/bin/
 
 # Generated distribution package (regenerate via dist/build_dist_package.m)
 dist/build/
+
+# MATLAB Compiler project scaffolding (compiler.build.*/Application Compiler
+# sometimes writes these into the working folder instead of -OutputDir)
+dist/*.prj
+dist/PGIXS/
+dist/PGIXS_resources/
