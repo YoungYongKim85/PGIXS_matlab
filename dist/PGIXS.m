@@ -11,9 +11,15 @@ function PGIXS
     close all; clc;
 
     % 1. 안전한 경로 설정 (프로그램이 실행되는 현재 위치 추적)
+    % MATLAB Compiler로 컴파일된 배포 앱은 런타임에 addpath로 검색 경로를
+    % 바꾸는 것을 지원하지 않는다 (MATLAB:mpath:PathAlterationNotSupported).
+    % 컴파일 시에는 AdditionalFiles로 포함된 파일들이 이미 인식되므로,
+    % 소스에서 직접 실행할 때만 addpath 한다.
     appPath = fileparts(mfilename('fullpath'));
-    addpath(genpath(fullfile(appPath, 'functions')));
-    addpath(genpath(fullfile(appPath, 'gui', 'tab1')));
+    if ~isdeployed
+        addpath(genpath(fullfile(appPath, 'functions')));
+        addpath(genpath(fullfile(appPath, 'gui', 'tab1')));
+    end
 
     % ============================ GUI v2.0 ==================================
     % --- Create the starting modern window (uifigure)
