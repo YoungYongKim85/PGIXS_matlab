@@ -42,17 +42,25 @@ build/
 
 Determined by running MATLAB's dependency analyzer
 (`matlab.codetools.requiredFilesAndProducts`) against every file under
-`gui/tab1` with `gui/tab3` off the path entirely:
+`gui/tab1` with `gui/tab3` off the path entirely, cross-checked with a
+manual grep audit on 2026-08-18:
 
-1. Curve Fitting Toolbox -- peak fitting in the 1D plot windows
-2. Image Processing Toolbox -- drawline/drawrectangle ROI tools
+1. Curve Fitting Toolbox -- fittype-based Gaussian peak fitting in the
+   1D plot windows and `fitPGIXSGaussianPeak.m`
+2. Image Processing Toolbox -- drawline/drawrectangle/drawpolygon ROI
+   tools (GIXS2_gui.m, TrXS2_gui.m) and roipoly (TrXS_gui.m)
 3. Signal Processing Toolbox -- findpeaks (SDD calibration)
-4. Statistics and Machine Learning Toolbox -- nlinfit (SDD calibration)
-5. Parallel Computing Toolbox -- optional UseParallel acceleration path
+4. Parallel Computing Toolbox -- optional UseParallel acceleration path
    (not a hard requirement; only needed if that path is invoked)
 
 Optimization Toolbox (needed by `gui/tab3`'s `fmincon`-based lattice
 indexing) is **not** required for this Tab1-only build.
+
+Statistics and Machine Learning Toolbox was previously listed here for
+an `nlinfit` call in SDDcal_gui.m, but that call no longer exists in
+the current codebase (re-checked 2026-08-18) -- SDD calibration's peak
+fitting goes through `fitPGIXSGaussianPeak.m`'s Curve Fitting Toolbox
+`fittype` instead, so this toolbox has been dropped from the list.
 
 The machine you compile on needs these toolboxes installed. End users
 running the compiled app do **not** need MATLAB or these toolboxes --
@@ -73,7 +81,7 @@ Standalone Application.
   anything is missing -- data files loaded via a dynamically built
   path, e.g. the `.nff` scattering-factor tables, are not always
   auto-detected by static analysis).
-- Confirm the Toolboxes panel lists the 5 toolboxes above.
+- Confirm the Toolboxes panel lists the 4 toolboxes above.
 - Package: choose whether to bundle a MATLAB Runtime installer or
   assume the target PC already has the matching Runtime version
   installed.

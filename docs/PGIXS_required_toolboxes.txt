@@ -1,6 +1,8 @@
 PGIXS MATLAB Suite - Required MATLAB Toolboxes
 ================================================
 Generated: 2026-08-06
+Last verified: 2026-08-18 (manual grep-based re-check of every .m file
+        under functions/, gui/tab1, gui/tab3 -- see "Notes" below)
 Method: matlab.codetools.requiredFilesAndProducts() run against PGIXS.m
         and every active .m file under functions/, gui/tab1, gui/tab3,
         tools/ (MATLAB R2024a).
@@ -12,39 +14,48 @@ Base requirement
 Required add-on toolboxes
 --------------------------
 1. Curve Fitting Toolbox
-   Used for: fittype/fit-based peak fitting in the 1D plot windows
-   (OneDplotQrad_gui.m, OneDplotQline_gui.m, OneDplotQlinegi_gui.m,
-   OneDplotpixel_gui.m, OneDplotpixelR_gui.m) and
-   functions/Calibration/fitPGIXSGaussianPeak.m.
+   Used for: fittype/fitoptions-based Gaussian peak fitting in the 1D
+   plot windows (OneDplotQrad_gui.m, OneDplotQline_gui.m,
+   OneDplotQlinegi_gui.m, OneDplotpixel_gui.m, OneDplotpixelR_gui.m)
+   and functions/Calibration/fitPGIXSGaussianPeak.m.
 
 2. Image Processing Toolbox
-   Used for: interactive ROI tools (drawline, drawrectangle,
-   drawpolygon) in TrXS_gui.m, GIXS2_gui.m, TrXS2_gui.m,
-   GIXSXtal2D_gui.m, TrXSXtal2D_gui.m.
+   Used for: interactive ROI tools -- drawline/drawrectangle/
+   drawpolygon in GIXS2_gui.m, TrXS2_gui.m, GIXSXtal2D_gui.m,
+   TrXSXtal2D_gui.m, and roipoly in TrXS_gui.m.
 
 3. Optimization Toolbox
    Used for: fmincon-based crystal lattice indexing/fitting in
-   GIXSXtal2D_gui.m (and TrXSXtal2D_gui.m's equivalent helpers).
+   GIXSXtal2D_gui.m only. TrXSXtal2D_gui.m does not call fmincon or
+   any other Optimization Toolbox function (re-checked 2026-08-18;
+   an earlier version of this doc incorrectly listed it too).
 
 4. Signal Processing Toolbox
    Used for: findpeaks-based peak detection in SDDcal_gui.m and
    functions/Calibration/analyzePGIXSSDDCandidates.m.
 
-5. Statistics and Machine Learning Toolbox
-   Used for: nlinfit-based nonlinear regression in SDDcal_gui.m.
-
-6. Parallel Computing Toolbox
+5. Parallel Computing Toolbox
    Used for: optional 'UseParallel' acceleration paths in
-   GIXS2_gui.m and functions/Processing/processGIXSLinecutStack.m.
-   Not strictly required to run the app -- only needed if parallel
-   acceleration is actually invoked; without it MATLAB falls back to
-   serial execution or errors only if UseParallel is explicitly forced.
+   GIXS2_gui.m, TrXS2_gui.m, functions/Processing/
+   processGIXSLinecutStack.m, and functions/Processing/
+   processPGIXSROIStack.m. Not strictly required to run the app --
+   only needed if parallel acceleration is actually invoked; the
+   'UseParallel' option defaults to false and MATLAB falls back to
+   serial execution otherwise.
 
 Notes
 -----
-- Toolbox #6 (Parallel Computing) is the only one that is not a hard
+- Toolbox #5 (Parallel Computing) is the only one that is not a hard
   requirement for basic operation; all others are needed for normal
   GUI use (fitting, ROI drawing, indexing, SDD calibration).
+- Statistics and Machine Learning Toolbox was listed in the
+  2026-08-06 version of this doc (nlinfit in SDDcal_gui.m) but is no
+  longer required as of 2026-08-18: nlinfit/fitnlm/fitdist/regress do
+  not appear anywhere in the current codebase. SDDcal_gui.m's peak
+  fitting now goes through functions/Calibration/
+  fitPGIXSGaussianPeak.m, which uses Curve Fitting Toolbox's fittype
+  instead.
 - This list was derived from static/dynamic MATLAB dependency
-  analysis of the current codebase (post file-cleanup, 2026-08-06) and
-  should be regenerated if major features are added or removed.
+  analysis of the current codebase and a follow-up manual grep audit
+  (2026-08-18) and should be regenerated/re-audited if major features
+  are added or removed.
