@@ -737,13 +737,23 @@ param = initializeParams();
             I = single(I2d);
             Q = single(param.Q);
 
-            % gap/hot pixel은 상위 mask에서 이미 NaN. 측정된 0/음수는 평균에 포함
-            % (제외하면 고각이 위로 편향됨).
-            invalid_pix = ~isfinite(I) | ~isfinite(Q) | (Q <= 0);
+            % 측정된 0/음수는 평균에 포함 (제외하면 고각이 위로 편향됨).
+            %
+            % 기하(geometry)와 데이터 유효성을 분리한다. bin이 "원래 가져야 할"
+            % 픽셀은 sector와 유효한 Q만으로 정해지고, NaN 픽셀은 분자에서만
+            % 빠진다. 예전처럼 ~isfinite(I)를 이 마스크에 함께 넣으면
+            % dataCounts == geom_counts가 되어 coverage가 항상 1이고, 아래
+            % "Min cov" 임계값이 한 번도 동작하지 않았다.
+            % diagnosePGIXSSectorAverage.m은 이미 이렇게 분리해서 계산한다.
+            invalid_geom = ~isfinite(Q) | (Q <= 0);
 
-            % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀 버퍼로 추가 제외.
+            % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀
+            % 버퍼로 제외하되, 기하가 아니라 **데이터** 쪽에서 무효화한다.
+            % 기하에서 빼버리면 그 자리의 결손이 분모에서도 사라져, 검출기 갭을
+            % 가로지르는 bin이 멀쩡한 것처럼 보인다(= coverage가 떨어지지 않는다).
+            % gap/hot pixel 자체는 상위 mask에서 이미 NaN이다.
             if isfield(param, 'Mask') && isequal(size(param.Mask), size(I))
-                invalid_pix = invalid_pix | dilatePGIXSGapMask(param.Mask, 3);
+                I(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
             end
 
             % --------------------------------------------------------------
@@ -764,14 +774,14 @@ param = initializeParams();
                 else
                     sector_mask = (ang >= a1) | (ang <= a2);  % wrap-around
                 end
-                invalid_pix = invalid_pix | ~sector_mask;
+                invalid_geom = invalid_geom | ~sector_mask;
             end
 
             % --------------------------------------------------------------
             % [STEP 2] radius-bin first, Q-axis second (legacy FastRAvg2DQ)
             % --------------------------------------------------------------
-            valid_pix = ~invalid_pix;
-            if ~any(valid_pix(:))
+            valid_pix = ~invalid_geom;
+            if ~any(valid_pix(:) & isfinite(I(:)))
                 error('No valid pixels after masking.');
             end
 

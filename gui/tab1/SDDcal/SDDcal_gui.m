@@ -516,9 +516,15 @@ param = struct(); param.data = []; param.hROI = [];
             otherwise, saveData.index_dt = 'unknown';
         end
         
-        % 2. Python 연동을 위한 JSON 데이터 구성 (0-based index 적용)
+        % 2. Python 연동을 위한 JSON 데이터 구성
+        %
+        % 예전에는 "Python은 0부터 세니까"라며 중심 좌표에서 1을 뺐지만, 그
+        % 전제가 사실이 아니다. PGIXS_python은 빔 중심을 numpy 인덱스가 아니라
+        % MATLAB과 같은 1-based 픽셀 좌표로 들고 있고(모든 픽셀 격자가
+        % np.arange(1, n+1)), 읽어들인 pc를 그대로 그 격자에 쓴다. 그래서 1을
+        % 뺀 .json은 Python의 Load Info에서 두 축 모두 한 픽셀씩 어긋났다.
+        % .mat/.std와 동일하게 1-based로 저장한다.
         jsonData = saveData;
-        jsonData.pc = [hYpos.Value - 1, hZpos.Value - 1]; % Center 좌표를 1씩 빼줌
         if isfield(jsonData, 'SDDDiagnostics') && ...
                 isfield(jsonData.SDDDiagnostics, 'Candidates') && ...
                 istable(jsonData.SDDDiagnostics.Candidates)
