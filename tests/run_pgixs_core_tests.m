@@ -5,7 +5,14 @@ function run_pgixs_core_tests()
 %   matlab -batch "run('tests/run_pgixs_core_tests.m')"
 
     repoRoot = fileparts(fileparts(mfilename('fullpath')));
-    addpath(genpath(repoRoot));
+    % Exclude dist/ -- it holds a packaged *copy* of functions/ (gitignored
+    % build output). genpath returns it before functions/, so MATLAB resolved
+    % every shared function there: the suite silently tested stale build
+    % output instead of the source, and passed or failed accordingly.
+    allPaths = strsplit(genpath(repoRoot), pathsep);
+    allPaths = allPaths(~cellfun(@isempty, allPaths));
+    isDist = startsWith(allPaths, fullfile(repoRoot, 'dist'));
+    addpath(strjoin(allPaths(~isDist), pathsep));
 
     fprintf('PGIXS core tests start\n');
     testImageIO(repoRoot);
@@ -839,6 +846,15 @@ function testSDDCalibrationModules()
         'SDD candidate analysis should accept multiple synthetic rings.');
     assert(isfinite(candidateReport.FinalSDD), ...
         'SDD candidate analysis should return a finite robust SDD.');
+
+    % A very strong feature below MinRadius must not set the prominence
+    % threshold for the usable-ring domain.
+    profileWithCentralArtifact = profile;
+    profileWithCentralArtifact(20) = 1e6;
+    artifactReport = analyzePGIXSSDDCandidates(r, profileWithCentralArtifact, coverage, ...
+        'Silver behenate', 9.5, 0.075, struct('MinCoverage', 0.8));
+    assert(artifactReport.AcceptedCount >= 2, ...
+        'Central excluded artifact should not suppress valid SDD ring detection.');
 
     shortSDDProfile = 250 * exp(-((r - 60).^2) / (2 * 5^2)) + ...
         100 * exp(-((r - 140).^2) / (2 * 3^2)) + ...

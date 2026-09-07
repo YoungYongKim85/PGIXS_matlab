@@ -395,7 +395,13 @@ param = struct(); param.data = []; param.hROI = [];
         end
 
         currentSample = hStandard.Value;
-        primaryRow = acceptedRows(1);
+        % The displayed SDD is the median of all accepted rings.  Keep the
+        % representative ring metadata as close to that reported value as
+        % possible, rather than always selecting the first (smallest-radius)
+        % accepted ring.
+        acceptedSDD = param.SDDPeakCandidates.SDD(acceptedRows);
+        [~, representativeIndex] = min(abs(acceptedSDD - sddCandidateReport.FinalSDD));
+        primaryRow = acceptedRows(representativeIndex);
         roughTargetPixel = param.SDDPeakCandidates.RoughRadius(primaryRow);
         finalOrder = param.SDDPeakCandidates.Order(primaryRow);
         
@@ -417,8 +423,15 @@ param = struct(); param.data = []; param.hROI = [];
         param.Pixorder = fittedPixel;
         param.qval = param.SDDPeakCandidates.QValue(primaryRow);
         param.SDD = sddCandidateReport.FinalSDD;
-        [~, sddInfo] = computePGIXSSDDFromRing(fittedPixel, param.pixelSize, param.Energy, param.qval);
+        [representativeSDD, sddInfo] = computePGIXSSDDFromRing( ...
+            fittedPixel, param.pixelSize, param.Energy, param.qval);
         param.wavelength = sddInfo.Wavelength;
+        param.RepresentativeRingSDD = representativeSDD;
+        param.SDDSelection = struct( ...
+            'Method', 'median of accepted ring SDD values', ...
+            'RepresentativeCandidateRow', primaryRow, ...
+            'RepresentativeRingSDD', representativeSDD, ...
+            'FinalSDD', param.SDD);
         GUI.txtSDD.Text = sprintf('Result: %.2f mm', param.SDD);
         
         cla(hAX1D);
@@ -486,6 +499,12 @@ param = struct(); param.data = []; param.hROI = [];
         saveData.imgdim = param.dataSize;
         if isfield(param, 'SDDDiagnostics')
             saveData.SDDDiagnostics = param.SDDDiagnostics;
+        end
+        if isfield(param, 'RepresentativeRingSDD')
+            saveData.RepresentativeRingSDD = param.RepresentativeRingSDD;
+        end
+        if isfield(param, 'SDDSelection')
+            saveData.SDDSelection = param.SDDSelection;
         end
         
         switch param.detector
@@ -638,14 +657,14 @@ param = struct(); param.data = []; param.hROI = [];
             iCol = round(curCY); iRow = round(curCZ);
             if iCol < 1 || iCol > W || iRow < 1 || iRow > H, break; end
             searchRange = round(targetRadius) + (-20:20); searchRange = searchRange(searchRange > 0);
-            idxR = iCol + searchRange; idxR = idxR(idxR <= W); profR = data(iRow, idxR);
-            idxL = iCol - searchRange; idxL = idxL(idxL > 0); profL = data(iRow, idxL);
-            idxD = iRow + searchRange; idxD = idxD(idxD <= H); profD = data(idxD, iCol); 
-            idxU = iRow - searchRange; idxU = idxU(idxU > 0); profU = data(idxU, iCol);
-            try [pR, ~, ~] = fitPGIXSGaussianPeak(searchRange, profR, targetRadius); catch, pR = NaN; end
-            try [pL, ~, ~] = fitPGIXSGaussianPeak(searchRange, profL, targetRadius); catch, pL = NaN; end
-            try [pD, ~, ~] = fitPGIXSGaussianPeak(searchRange, profD', targetRadius); catch, pD = NaN; end
-            try [pU, ~, ~] = fitPGIXSGaussianPeak(searchRange, profU', targetRadius); catch, pU = NaN; end
+            idxR = iCol + searchRange; keepR = idxR <= W; idxR = idxR(keepR); profR = data(iRow, idxR); xR = searchRange(keepR);
+            idxL = iCol - searchRange; keepL = idxL > 0; idxL = idxL(keepL); profL = data(iRow, idxL); xL = searchRange(keepL);
+            idxD = iRow + searchRange; keepD = idxD <= H; idxD = idxD(keepD); profD = data(idxD, iCol); xD = searchRange(keepD);
+            idxU = iRow - searchRange; keepU = idxU > 0; idxU = idxU(keepU); profU = data(idxU, iCol); xU = searchRange(keepU);
+            try [pR, ~, ~] = fitPGIXSGaussianPeak(xR, profR, targetRadius); catch, pR = NaN; end
+            try [pL, ~, ~] = fitPGIXSGaussianPeak(xL, profL, targetRadius); catch, pL = NaN; end
+            try [pD, ~, ~] = fitPGIXSGaussianPeak(xD, profD', targetRadius); catch, pD = NaN; end
+            try [pU, ~, ~] = fitPGIXSGaussianPeak(xU, profU', targetRadius); catch, pU = NaN; end
             shiftY = 0; shiftZ = 0; countY = 0; countZ = 0;
             if ~isnan(pR) && ~isnan(pL), shiftY = (pR - pL) / 2; countY = 1; end
             if ~isnan(pD) && ~isnan(pU), shiftZ = (pD - pU) / 2; countZ = 1; end
