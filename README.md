@@ -104,4 +104,4 @@ Accelerator Laboratory (kimyy@postech.ac.kr)
 ## License
 
 MIT — see [LICENSE](LICENSE).
-Copyright © 2026 Pohang Accelerator Laboratory, POSTECH.
+Copyright © 2026 Pohang Accelerator Laboratory.
