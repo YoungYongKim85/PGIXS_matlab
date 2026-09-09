@@ -205,8 +205,11 @@ SDD[mm] = Pixel Radius × pixel_size[mm] / tan(2θ)
 - **IC:** / **BC:** — 이온챔버·빔카운터 값. 정규화에 쓴다.
 - **Load Info** — SDD Calculator가 저장한 캘리브레이션을 불러온다. **Energy [keV]**,
   **SDD [mm]**, **Center [y,z]**가 채워진다. **이걸 하지 않으면 q-Map Cal.이 막혀 있다.**
-- **ai [deg]:** — 입사각. 직접 입력하거나, **y-pos**에 픽셀값을 넣고 `pixel`/`degree`
-  변환을 쓴다(직접빔과 반사빔 사이 픽셀 거리로부터 `ai = atan(pix·p/SDD)/2`).
+- **ai [deg]:** — 입사각. 직접 입력하거나, `pixel` / `degree` 필드로 환산한다
+  (직접빔과 반사빔 사이 픽셀 거리로부터 `ai = atan(pix·p/SDD)/2`).
+  **한쪽에 숫자를 넣고 Enter를 누르면 다른 쪽이 자동으로 계산된다.**
+  픽셀 피치는 **Detector** 선택에서 오므로, 데이터를 불러오기 전에도 된다 —
+  SDD만 들어있으면 된다. 측정 전에 입사각을 정할 때 쓰는 기능이다.
 - **z-plot** — 수직 라인 프로파일 창. 입사각용 픽셀 위치를 읽을 때 쓴다.
 - **Footprint [mm]:** + **q uncertainty** — 시료 위 조사 면적을 SDD의 ±FP/2
   불확실성으로 취급해 q 좌표 자체의 근사 오차를 계산한다. 1D 플롯의 X축 error bar와
@@ -307,6 +310,8 @@ solid angle × polarization × 캡톤(Kapton) 창 투과율 × [Eiger4M이면] �
 ### 4.2 Incidence Angle Calibration
 
 - **ai [deg]:**, **pix:**, **deg:**, **step:** — 입사각과 그 변환값.
+  **pix / deg 중 한쪽에 숫자를 넣고 Enter를 누르면 다른 쪽이 자동으로 계산된다**
+  (Load Info로 SDD가 들어와 있어야 한다).
 - **Z-Plot** — 수직 프로파일 창에서 직접빔/반사빔 픽셀을 읽는다.
 - **Change ai** — **입사각 스캔** 모드. 프레임마다 입사각이 다를 때 켠다. 켜면
   q-Cal.이 프레임별로 Q 맵을 다시 계산한다(느리지만 정확하다).

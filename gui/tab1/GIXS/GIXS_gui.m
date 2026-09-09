@@ -539,14 +539,54 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         end
     end
 
+    function pxSize = currentPixelSize()
+        % param.pixel only exists once LOAD DATA has run, but the
+        % pixel<->degree conversion is normally used *before* loading -- it
+        % is how the user works out which incidence angle to ask for. Fall
+        % back to the detector dropdown, which is all the pitch depends on.
+        if isfield(param, 'pixel') && ~isempty(param.pixel) && param.pixel > 0
+            pxSize = double(param.pixel);
+        else
+            pxSize = pgixsDetectorPixelSize(GX.hDetector.Value);
+        end
+    end
+
+    function ok = requireSDDForIncidence()
+        ok = false;
+        sdd = double(GX.hSDD.Value);
+        if ~isfinite(sdd) || sdd <= 0
+            uialert(GUI.main, ['SDD를 먼저 입력하거나 Load Info로 불러오세요. ' ...
+                '(현재 SDD [mm] = ', num2str(sdd), ')'], 'Incidence angle');
+            return;
+        end
+        param.SDD = sdd;
+        ok = true;
+    end
+
+    function drawIncidenceGuide(pixai)
+        % The guide line is a nicety; the converted number is the point.
+        % renderImage needs param.HD/VD, which only exist once an image has
+        % been loaded, so skip the redraw rather than let it throw and
+        % swallow the conversion with it.
+        if isempty(param.data) || ~isfield(param, 'HD'), return; end
+        renderImage(@() yline(hAX, fix(pixai), '--w', 'LineWidth', 1.5));
+    end
+
     function CalIncidence_Callback(~,~)
-        pixai = GX.hAiPix.Value; param.SDD = GX.hSDD.Value; param.ai = atand((pixai * param.pixel) / param.SDD) / 2;
-        GX.hAiDeg.Value = double(param.ai); renderImage(@() yline(hAX, fix(pixai), '--w', 'LineWidth', 1.5));
+        if ~requireSDDForIncidence(), return; end
+        pixai = abs(double(GX.hAiPix.Value));
+        param.ai = atand((pixai * currentPixelSize()) / param.SDD) / 2;
+        GX.hAiDeg.Value = double(param.ai);
+        drawIncidenceGuide(pixai);
     end
 
     function CalIncidencePixel_Callback(~,~)
-        aideg = GX.hAiDeg.Value; param.SDD = GX.hSDD.Value; pixai = param.SDD * tand(2 * aideg) / param.pixel;
-        GX.hAiPix.Value = double(pixai); renderImage(@() yline(hAX, fix(pixai), '--w', 'LineWidth', 1.5));
+        if ~requireSDDForIncidence(), return; end
+        aideg = double(GX.hAiDeg.Value);
+        pixai = abs(param.SDD * tand(2 * aideg) / currentPixelSize());
+        param.ai = aideg;
+        GX.hAiPix.Value = double(pixai);
+        drawIncidenceGuide(pixai);
     end
 
     function aiZplot_Callback(~,~)

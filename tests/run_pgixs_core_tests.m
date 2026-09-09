@@ -16,6 +16,7 @@ function run_pgixs_core_tests()
 
     fprintf('PGIXS core tests start\n');
     testImageIO(repoRoot);
+    testDetectorPixelSizeTable();
     testH5FrameLoader(repoRoot);
     testH5FrameRetryLoader();
     testFrameIndexFormatter();
@@ -102,6 +103,43 @@ function run_pgixs_core_tests()
     testInactiveGuiFilesAreNotReferenced(repoRoot);
     testCheckcode(repoRoot);
     fprintf('PGIXS core tests passed\n');
+end
+
+function testDetectorPixelSizeTable()
+% pgixsDetectorPixelSize was split out of loadPGIXSDetectorMask so the
+% incidence-angle pixel<->degree conversion can look the pitch up before any
+% image is loaded. The two must never disagree: the pitch feeds every Q map,
+% so a divergence here would quietly move q axes rather than fail loudly.
+
+    detectors = {'Eiger4M', 'MarCCD', 'SX165', 'MX170HS', 'PI-CCD', 'PI_CCD', ...
+                 'MAR345', 'UnknownDetector'};
+    for ii = 1:numel(detectors)
+        name = detectors{ii};
+        [~, maskPixel] = loadPGIXSDetectorMask(name);
+        helperPixel = pgixsDetectorPixelSize(name);
+        assert(abs(maskPixel - helperPixel) < 1e-12, ...
+            sprintf('Pixel size mismatch for %s: mask loader %g vs helper %g.', ...
+                    name, maskPixel, helperPixel));
+        assert(helperPixel > 0, sprintf('Pixel size for %s must be positive.', name));
+    end
+
+    % Spot-check the actual values, so a wrong edit to the table is caught
+    % even though the two sources would still agree with each other.
+    assert(abs(pgixsDetectorPixelSize('Eiger4M') - 0.075) < 1e-12, 'Eiger4M pitch changed.');
+    assert(abs(pgixsDetectorPixelSize('MarCCD') - 0.079) < 1e-12, 'MarCCD pitch changed.');
+    assert(abs(pgixsDetectorPixelSize('UnknownDetector') - 0.075) < 1e-12, ...
+        'Unknown detector should fall back to 0.075 mm.');
+
+    % The relation the GIXS/GIXS-series incidence-angle fields implement, in
+    % both directions. Reported as "pix에 숫자를 넣고 엔터를 눌러도 degree가
+    % 계산되지 않는다": the conversion threw on param.pixel before any image
+    % was loaded, and the error only reached the command window.
+    sdd = 220; pitch = pgixsDetectorPixelSize('Eiger4M');
+    pix = 40;
+    deg = atand((pix * pitch) / sdd) / 2;
+    back = sdd * tand(2 * deg) / pitch;
+    assert(abs(back - pix) < 1e-9, 'Incidence-angle conversion is not round-trip stable.');
+    assert(abs(deg - 0.3906287) < 1e-6, 'Incidence-angle conversion value changed.');
 end
 
 function testImageIO(repoRoot)

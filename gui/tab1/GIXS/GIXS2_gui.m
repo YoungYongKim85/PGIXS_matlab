@@ -2152,19 +2152,38 @@ btnSvX4.Layout.Column = 4;
         end
     end
 
-    function CalIncidence2_Callback(~,~)
-        pixai = abs(double(GX2.hAiPix.Value));   % 음수 입력 방어 (direction과 무관하게 크기만 사용)
-        if ~isfield(param, 'SDD')
-            uialert(GUI.main, 'Load Info를 먼저 실행하여 SDD를 불러오세요.', '알림'); return; 
+    function pxSize = currentPixelSize2()
+        % param.pixel is only set by LOAD DATA, but Load Info alone is
+        % enough to convert -- the pitch depends on the detector, nothing
+        % else. Without this fallback the conversion threw
+        % "Unrecognized field name 'pixel'" straight past the SDD guard,
+        % which looked to the user like the field simply doing nothing.
+        if isfield(param, 'pixel') && ~isempty(param.pixel) && param.pixel > 0
+            pxSize = double(param.pixel);
+        else
+            pxSize = pgixsDetectorPixelSize(GUI.hDetector.Value);
         end
-        param.ai = atand((pixai * param.pixel) / param.SDD) / 2;
+    end
+
+    function ok = requireSDDForIncidence2()
+        ok = isfield(param, 'SDD') && ~isempty(param.SDD) && isfinite(param.SDD) && param.SDD > 0;
+        if ~ok
+            uialert(GUI.main, 'Load Info를 먼저 실행하여 SDD를 불러오세요.', '알림');
+        end
+    end
+
+    function CalIncidence2_Callback(~,~)
+        if ~requireSDDForIncidence2(), return; end
+        pixai = abs(double(GX2.hAiPix.Value));   % 음수 입력 방어 (direction과 무관하게 크기만 사용)
+        param.ai = atand((pixai * currentPixelSize2()) / param.SDD) / 2;
         GX2.hAiDeg.Value = double(param.ai);
     end
 
     function CalIncidencePixel2_Callback(~,~)
-        aideg = double(GX2.hAiDeg.Value); 
-        if ~isfield(param, 'SDD'), return; end
-        pixai = param.SDD * tand(2 * aideg) / param.pixel;
+        if ~requireSDDForIncidence2(), return; end
+        aideg = double(GX2.hAiDeg.Value);
+        pixai = param.SDD * tand(2 * aideg) / currentPixelSize2();
+        param.ai = aideg;
         GX2.hAiPix.Value = double(round(abs(pixai)));  % 정수 픽셀 + 양수 보장
     end
 

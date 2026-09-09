@@ -2,26 +2,24 @@ function [mask, pixel, report] = loadPGIXSDetectorMask(detectorType)
 % loadPGIXSDetectorMask  Return detector mask and pixel size for PGIXS.
 
     report = struct('FallbackUsed', false, 'Message', '', 'MaskFile', '');
+    % Single source of truth for the pitch -- see pgixsDetectorPixelSize.
+    pixel = pgixsDetectorPixelSize(detectorType);
     switch char(detectorType)
         case 'Eiger4M'
-            [mask, pixel, maskReport] = loadMaskFile('EigerMask.mat', [2167, 2070], 0.075);
+            [mask, ~, maskReport] = loadMaskFile('EigerMask.mat', [2167, 2070], pixel);
         case {'MarCCD', 'SX165'}
-            [mask, pixel, maskReport] = loadMaskFile('SX165mask.mat', [2048, 2048], 0.079);
+            [mask, ~, maskReport] = loadMaskFile('SX165mask.mat', [2048, 2048], pixel);
         case 'MX170HS'
             mask = ones(1920, 1920, 'single');
-            pixel = 0.0886;
             maskReport = report;
         case {'PI-CCD', 'PI_CCD'}
             mask = ones(1042, 1042, 'single');
-            pixel = 0.1152;
             maskReport = report;
         case 'MAR345'
             mask = ones(3450, 3450, 'single');
-            pixel = 0.1;
             maskReport = report;
         otherwise
             mask = [];
-            pixel = 0.075;
             maskReport = report;
             maskReport.FallbackUsed = true;
             maskReport.Message = ['Unknown detector type: ', char(detectorType)];
