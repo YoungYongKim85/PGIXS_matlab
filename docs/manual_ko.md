@@ -2,13 +2,13 @@
 
 PGIXS는 **MATLAB 버전**과 **Python 버전** 두 가지로 제공된다. 이 문서는 그중
 **MATLAB 버전(원본 구현)**의 사용자 매뉴얼이다. MATLAB 라이선스가 필요한 대신,
-Python 버전에는 없는 **2D 구조 모델링(Xtal) 도구와 H5→TIFF 변환기**를 포함한다.
+Python 버전에는 없는 **H5→TIFF 변환기**를 포함한다.
 
 프로그램은 `PGIXS.m`이 여는 **pGIXS Console** 창에서 시작하며, 콘솔은 계산을 하지
 않고 개별 도구 창을 띄우는 런처 역할만 한다.
 
 > Python 버전 매뉴얼은 해당 저장소의 `docs/desktop_manual_ko.md`에 있다. 두 버전의
-> 계산 결과가 어디까지 일치하고 어디서 갈리는지는 [13. 부록](#13-부록-python-버전과의-관계)에
+> 계산 결과가 어디까지 일치하고 어디서 갈리는지는 [12. 부록](#12-부록-python-버전과의-관계)에
 > 정리했다.
 
 ---
@@ -24,10 +24,9 @@ Python 버전에는 없는 **2D 구조 모델링(Xtal) 도구와 H5→TIFF 변�
 7. [Transmittance (XTrans)](#7-transmittance-xtrans)
 8. [Penetration Depth](#8-penetration-depth)
 9. [Converter (H5 → TIFF)](#9-converter-h5--tiff)
-10. [2D Analysis — Xtal 도구](#10-2d-analysis--xtal-도구)
-11. [공통 개념 정리](#11-공통-개념-정리)
-12. [문제 해결](#12-문제-해결)
-13. [부록: Python 버전과의 관계](#13-부록-python-버전과의-관계)
+10. [공통 개념 정리](#10-공통-개념-정리)
+11. [문제 해결](#11-문제-해결)
+12. [부록: Python 버전과의 관계](#12-부록-python-버전과의-관계)
 
 ---
 
@@ -40,16 +39,14 @@ cd /path/to/PGIXS_matlab
 PGIXS
 ```
 
-`PGIXS.m`이 `functions/`, `gui/tab1/`, `gui/tab3/`를 MATLAB 경로에 추가하고
-**pGIXS Console v2.0** 창을 연다. 창은 두 개의 탭으로 나뉜다.
+`PGIXS.m`이 `functions/`와 `gui/tab1/`을 MATLAB 경로에 추가하고 **pGIXS Console**
+창을 연다.
 
-| 탭 | 버튼 |
-| --- | --- |
-| **Console** | SDD calculator · Converter · TrXS · TrXS-series · GIXS · GIXS-series · Transmittance · Penetration Depth |
-| **2D Analysis** | TrXS-Xtal · GIXS-Xtal |
+| 버튼 |
+| --- |
+| SDD calculator · Converter · TrXS · TrXS-series · GIXS · GIXS-series · Transmittance · Penetration Depth |
 
-> **[그림 1 필요]** — pGIXS Console 창 전체. Console 탭이 열린 상태로 8개 버튼이
-> 모두 보이게 캡처. 2D Analysis 탭도 별도로 한 장.
+![그림 1. pGIXS Console — Console 탭. 여기서 각 도구 창을 띄운다. 하단에 스위트 버전이 표시된다](figures/fig01.png)
 
 ### 1.2 실행 환경
 
@@ -61,7 +58,6 @@ PGIXS
   | Curve Fitting | 1D 창의 Gaussian 피크 피팅, `fitPGIXSGaussianPeak.m` |
   | Image Processing | ROI 도구(`drawline`/`drawrectangle`/`drawpolygon`), TrXS의 `roipoly` |
   | Signal Processing | `findpeaks` 기반 링 검출 (SDD 캘리브레이션) |
-  | Optimization | `GIXSXtal2D_gui`의 격자 인덱싱(`fmincon`) — 이 도구를 쓸 때만 |
   | Parallel Computing | GIXS-series/TrXS-series의 `Parallel` 체크박스 — **선택 사항** |
 
   Parallel Computing만 없어도 동작한다(직렬로 대체). 나머지는 정상 사용에 필요하다.
@@ -81,11 +77,8 @@ PGIXS
         [GIXS] 또는 [TrXS]  (단일 프레임)
          Load Info → q-Map Cal. → 1D/Azimuthal 컷
                        │
-                       ├─→ 시리즈면 [GIXS-series] / [TrXS-series]
-                       │     시간·온도·입사각 축으로 프레임 묶음 처리
-                       │
-                       └─→ *_2Dinfo.mat 저장 시
-                             [GIXS-Xtal] / [TrXS-Xtal] 에서 HKL 인덱싱
+                       └─→ 시리즈면 [GIXS-series] / [TrXS-series]
+                             시간·온도·입사각 축으로 프레임 묶음 처리
 ```
 
 보조 계산기인 **Transmittance**와 **Penetration Depth**는 이 흐름과 독립적이며,
@@ -102,8 +95,7 @@ PGIXS
 빔 중심과 시료–검출기 거리(SDD)를 결정한다. 여기서 저장한 파일을 GIXS/TrXS의
 **Load Info**가 읽으므로, 실험 세션의 첫 단계다.
 
-> **[그림 2 필요]** — SDD Calculator 창 전체. 왼쪽 파라미터 패널 + 오른쪽 2D 이미지에
-> 링이 보이고 중심 십자선이 표시된 상태.
+![그림 2. SDD Calculator. 오른쪽 위에 캘리브런트 링과 중심 십자선, 아래에 Gaussian 피팅 대시보드와 링 후보 테이블(Coverage·R²·SDD)이 보인다](figures/fig02.png)
 
 ### 2.1 왼쪽 패널
 
@@ -194,8 +186,7 @@ SDD[mm] = Pixel Radius × pixel_size[mm] / tan(2θ)
 **Grazing Incidence X-ray Scattering v2.0** (`GIXS_gui.m`) — 스침각 입사 기하의
 단일 프레임을 Q-space로 변환하고 1D/방위각 프로파일을 뽑는다.
 
-> **[그림 3 필요]** — GIXS_gui 창 전체. 왼쪽 파라미터 패널 + 오른쪽 2D 이미지 +
-> 하단 Image Controller가 모두 보이게.
+![그림 3. GIXS 단일 프레임. Map format을 Qxy/Qz로 둔 상태라 Qxy ≈ 0 부근의 missing wedge가 그대로 드러난다](figures/fig03.png)
 
 ### 3.1 왼쪽 패널 — 로드와 보정
 
@@ -289,9 +280,7 @@ solid angle × polarization × 캡톤(Kapton) 창 투과율 × [Eiger4M이면] �
 한 번에 축약하고, 시간·온도·입사각 축에 대해 커브를 쌓아 본다. *in-situ* 측정의
 주 도구다.
 
-> **[그림 4 필요]** — GIXS2_gui 창 전체. 왼쪽 파라미터 패널 + 오른쪽 4분할 뷰어
-> (2D 이미지 / Azimuthal / 1D / Integration)가 모두 보이게. 시리즈를 로드해
-> 여러 커브가 컬러바와 함께 겹쳐 그려진 상태가 좋다.
+![그림 4. GIXS-series 4분할 뷰어. 2D 이미지·1D 커브·Azimuthal·시리즈 적분이 한 화면에 모이고, 프레임별 커브가 컬러바로 구분된다](figures/fig04.png)
 
 ### 4.1 Serial Data Parameters / Load
 
@@ -376,7 +365,6 @@ solid angle × polarization × 캡톤(Kapton) 창 투과율 × [Eiger4M이면] �
 | **Save Azi** | 방위각 커브 행렬 |
 | **Save Integ.** | ROI/적분 추이 |
 | **Save X-Axis** | X축 값만 |
-| **Export & Load** | Tab3 인덱싱용 `*_2Dinfo.mat` 내보내기 |
 
 **Save Form** 드롭다운으로 `.mat` / `.dat` / `.csv` 중에 고른다.
 
@@ -388,7 +376,7 @@ solid angle × polarization × 캡톤(Kapton) 창 투과율 × [Eiger4M이면] �
 기하의 단일 프레임을 처리한다. GIXS와 달리 입사각 개념이 없고, **Circular
 Average(원형 평균)** 가 대표 1D 처리다.
 
-> **[그림 5 필요]** — TrXS_gui 창 전체. 왼쪽 패널 + 오른쪽 2D 이미지.
+![그림 5. TrXS 단일 프레임. 동심원 링과 빔스톱 암이 보이고, 가로로 갈라진 줄은 검출기 모듈 갭이다](figures/fig05.png)
 
 ### 5.1 왼쪽 패널
 
@@ -437,8 +425,7 @@ TrXS는 투과 기하이므로 **0~360° 전체 원**을 스윕한다(GIXS는 0~
 **Transmission X-ray Scattering Series v2.0** (`TrXS2_gui.m`) — 투과 기하의 프레임
 묶음 처리. GIXS-series와 구조가 같고, **배경 빼기(Subtraction)** 가 추가된 것이 특징이다.
 
-> **[그림 6 필요]** — TrXS2_gui 창 전체. 시리즈를 로드하고 Circular 처리를 실행해
-> 4분할 뷰어에 커브가 쌓인 상태.
+![그림 6. TrXS-series 4분할 뷰어. Circular 처리 결과가 1D Wave Vector Plot에 프레임별로 쌓인다](figures/fig06.png)
 
 ### 6.1 로드
 
@@ -474,7 +461,7 @@ TrXS는 투과 기하이므로 **0~360° 전체 원**을 스윕한다(GIXS는 0~
 
 ### 6.5 Save
 
-**Save**, **Integ.**, **Save Data**, **Save X-Axis**, **Export & Load** —
+**Save**, **Integ.**, **Save Data**, **Save X-Axis** —
 **Save Format:** 으로 형식을 고른다.
 
 > Save 1D는 표준편차를 별도 파일로 쓰지 않고 **같은 파일에 열을 번갈아** 넣는다:
@@ -487,8 +474,7 @@ TrXS는 투과 기하이므로 **0~360° 전체 원**을 스윕한다(GIXS는 0~
 **X-ray Parameters Calculator v2.0** (`XTrans_GUI.m`) — 물질의 X선 투과율을 광자
 에너지에 대해 계산한다. 측정 전에 시료 두께나 창(window) 재질을 정할 때 쓴다.
 
-> **[그림 7 필요]** — XTrans 창 전체. 입력값을 채우고 RUN CALCULATION을 눌러
-> 투과율 곡선이 그려진 상태.
+![그림 7. Transmittance (XTrans). C8H8 박막의 광자 에너지별 투과율](figures/fig07.png)
 
 ### 7.1 입력
 
@@ -520,8 +506,7 @@ TrXS는 투과 기하이므로 **0~360° 전체 원**을 스윕한다(GIXS는 0~
 X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다. **GIXS 측정의 입사각을
 정하는 것이 주 용도다.**
 
-> **[그림 8 필요]** — Penetration 창 전체. 임계각 위치에 세로 점선이 표시되고
-> 침투깊이 곡선이 급격히 꺾이는 모습이 보이게.
+![그림 8. Penetration Depth. Si, 11.3 keV 기준 임계각 0.1584°가 빨간 점선으로 표시되며, 그 지점에서 침투깊이가 급격히 꺾인다](figures/fig08.png)
 
 ### 8.1 입력
 
@@ -552,7 +537,7 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 **H5 to TIFF Converter v2.0** (`Converter_gui.m`) — 빔라인 HDF5 프레임을 TIFF로
 변환한다. **Python 버전에는 없는 도구다.**
 
-> **[그림 9 필요]** — Converter 창 전체(500×540 크기의 단일 창).
+![그림 9. H5 to TIFF Converter](figures/fig09.png)
 
 | 항목 | 설명 |
 | --- | --- |
@@ -569,52 +554,7 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 
 ---
 
-## 10. 2D Analysis — Xtal 도구
-
-콘솔의 **2D Analysis** 탭에 있는 두 도구는 저장된 2D 데이터에 결정 구조를 겹쳐
-**HKL 인덱싱**을 한다. **Python 버전에는 없다.**
-
-| 도구 | 대상 |
-| --- | --- |
-| **GIXS-Xtal** (`GIXSXtal2D_gui.m`) | GIXS에서 저장한 `*_2Dinfo.mat` |
-| **TrXS-Xtal** (`TrXSXtal2D_gui.m`) | TrXS에서 저장한 `*_2Dinfo.mat` |
-
-> **[그림 10 필요]** — GIXS-Xtal 창 전체. `*_2Dinfo.mat`을 열고 결정 파라미터를
-> 넣어 HKL 오버레이가 2D 패턴 위에 찍힌 상태.
-
-### 10.1 사용 순서
-
-1. GIXS/TrXS(또는 series)에서 **Export & Load** 로 `*_2Dinfo.mat`을 저장한다.
-   파일 규약은 `docs/PGIXS_io_contract.md`에 정의돼 있다.
-2. 대응하는 Xtal 도구에서 **Open data** 로 그 파일을 연다.
-   **GIXS 파일은 GIXS-Xtal에서, TrXS 파일은 TrXS-Xtal에서 열어야 한다.**
-3. **Map format**, 이미지 범위, 컬러 범위를 확인한다.
-4. **Parameter Panel** 에 결정 파라미터를 입력한다 — **Crystal System**,
-   **Space Group**, 격자 상수, **Normal Direction**(막 법선 방향),
-   **Inci. ang. [deg]**, **Crit. ang. [deg]**.
-5. **Plot** — HKL 오버레이를 그린다.
-6. 필요하면 **Solve** / **Smart Range** 로 격자 파라미터를 피팅한다
-   (Optimization Toolbox가 필요하다 — GIXS-Xtal에만 해당).
-7. **Table** / **HKLplot** 으로 선택한 HKL을 확인하고 **Save** / **Save Combined** /
-   **Save Image** 로 내보낸다.
-
-### 10.2 주요 컨트롤
-
-- **Ewald**, **Reflec.** / **Refrac.** / **Trans.** — 에발트 구 작도와 반사·굴절·투과
-  성분 표시 선택.
-- **Random Ori.**, **Plane**, **Shape**, **Size** — 결정립 배향 분포와 형상 모델.
-- **X-rot** / **Y-rot** — 결정 방위 회전.
-- **Line Cut** — **Interactive 1D Line Profile** 창을 띄워 2D 패턴에서 1D 프로파일을 뽑는다.
-- **Erase Peak**, **Hold (opt.)** / **Current (opt.)** / **Holding** — 피크 선택·보존 관리.
-- **Image Controller** — **ColorScale**, **Colormap**, **Contrast**, **Y-range**,
-  **Font Size**, **Update Image**.
-
-> 이 두 도구는 이 매뉴얼의 다른 절보다 설명이 얕다. 더 깊은 내용은 `Manual/` 폴더의
-> 도구별 매뉴얼을 참고한다.
-
----
-
-## 11. 공통 개념 정리
+## 10. 공통 개념 정리
 
 | 용어 | 의미 |
 | --- | --- |
@@ -631,11 +571,10 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 | **q uncertainty** | (GIXS 전용) Footprint를 SDD의 ±FP/2 불확실성으로 취급해 구한 q 좌표 자체의 근사 오차. 데이터 통계와는 무관한 순수 기하학적 값이며, Cakecut과는 함께 쓸 수 없다. |
 | **ROI** | 2D 이미지에 사각형을 그려 그 영역의 **합계**를 프레임별로 추적 (series 도구 전용). |
 | **Auto Refresh** | 폴더를 다시 스캔해 새 파일을 찾아 불러오고 마지막 처리에 이어붙인다 (series 도구 전용). |
-| **`*_2Dinfo.mat`** | Tab3 인덱싱으로 넘기는 2D 데이터 파일. `savePGIXS2DInfoFile`이 쓰며 규약은 `docs/PGIXS_io_contract.md`에 있다. |
 
 ---
 
-## 12. 문제 해결
+## 11. 문제 해결
 
 - **q-Map Cal. / q-Cal.이 안 눌린다** → 먼저 **Load Info**로 캘리브레이션을 불러와야
   한다. 그 전에는 막혀 있다.
@@ -677,13 +616,13 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 
 ---
 
-## 13. 부록: Python 버전과의 관계
+## 12. 부록: Python 버전과의 관계
 
 같은 데이터를 MATLAB 버전과 Python 버전으로 각각 처리하면 **커브가 완전히 똑같이
 나오지는 않는다.** 버그가 아니라, 두 프로그램이 같은 물리량을 서로 다른 방식으로
 추정하기 때문이다.
 
-### 13.1 기능 범위
+### 12.1 기능 범위
 
 | | MATLAB | Python |
 | --- | --- | --- |
@@ -692,11 +631,10 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 | TrXS / TrXS-series | ✅ | ✅ |
 | Transmittance / Penetration Depth | ✅ | ✅ |
 | **Converter (H5→TIFF)** | ✅ | ❌ |
-| **2D Analysis (Xtal 인덱싱)** | ✅ | ❌ |
 | MATLAB 라이선스 | 필요 | **불필요** |
 | 실행 파일 배포 | — | Windows/macOS/Linux |
 
-### 13.2 반드시 같아야 하는 것
+### 12.2 반드시 같아야 하는 것
 
 | 항목 | 실측 결과 |
 | --- | --- |
@@ -706,7 +644,7 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 
 빔 중심·SDD·에너지·검출기 보정이 모두 맞아야 나오는 값들이다. 여기가 어긋나면 문제다.
 
-### 13.3 달라도 정상인 것
+### 12.3 달라도 정상인 것
 
 | 처리 | MATLAB | Python |
 | --- | --- | --- |
@@ -730,7 +668,7 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 - **q축이 상대적으로 약 1e-5 다르다** — 두 프로그램의 hc 값이 미세하게 다르다
   (MATLAB 12.3985167 keV·Å, Python 12.3984198). 7.8 ppm이며 실사용에 영향이 없다.
 
-### 13.4 직접 대조해 보기
+### 12.4 직접 대조해 보기
 
 Python 저장소의 `tools/matlab_crosscheck/`에 두 버전을 같은 데이터로 돌려 비교하는
 도구가 있다. 양쪽이 JSON 설정 파일 하나를 공유하므로 빔 중심이나 SDD가 몰래
