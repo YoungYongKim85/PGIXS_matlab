@@ -6,7 +6,7 @@ function XTrans_GUI
 clc;
 
 % ============================ GUI Setup ==================================
-GUI.main = uifigure('Name','X-ray Parameters Calculator v2.0',...
+GUI.main = uifigure('Name',['X-ray Parameters Calculator v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[200 200 900 550], 'Color', [0.96 0.96 0.96]);
 
 % Main Grid
@@ -82,7 +82,7 @@ btnCalc = uibutton(lg, 'Text', 'RUN CALCULATION', 'FontSize', 13, 'FontWeight', 
     'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Calc_Callback);
 btnCalc.Layout.Row = 10; btnCalc.Layout.Column = [1 2];
 
-lblVer = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
+lblVer = uilabel(lg, 'Text', ['Designed By Y.Y.Kim v', pgixsVersion()], 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
 lblVer.Layout.Row = 11; lblVer.Layout.Column = [1 2];
 
 % ========================= 2. Right Panel (Plot & Control) ===============

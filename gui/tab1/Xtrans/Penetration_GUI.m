@@ -7,7 +7,7 @@ function Penetration_GUI
 clc;
 
 % ============================ GUI Setup ==================================
-GUI.main = uifigure('Name','X-ray Penetration Depth Calculator v2.0',...
+GUI.main = uifigure('Name',['X-ray Penetration Depth Calculator v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[200 200 900 600], 'Color', [0.96 0.96 0.96]);
 
 % Main Grid (Left: Parameters & Info, Right: Plot & Control)
@@ -75,7 +75,7 @@ btnCalc = uibutton(pg, 'Text', 'RUN CALCULATION', 'FontSize', 13, 'FontWeight', 
     'BackgroundColor', [0.1 0.3 0.5], 'FontColor', 'w', 'ButtonPushedFcn', @Calc_Callback);
 btnCalc.Layout.Row = 7; btnCalc.Layout.Column = [1 2];
 
-lblVer = uilabel(pg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
+lblVer = uilabel(pg, 'Text', ['Designed By Y.Y.Kim v', pgixsVersion()], 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
 lblVer.Layout.Row = 8; lblVer.Layout.Column = [1 2];
 
 

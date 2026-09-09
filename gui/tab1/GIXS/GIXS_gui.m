@@ -14,7 +14,7 @@ end
 clc;
 
 % ============================ GUI Setup ==================================
-GUI.main = uifigure('Name','Grazing Incidence X-ray Scattering v2.0',...
+GUI.main = uifigure('Name',['Grazing Incidence X-ray Scattering v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[100 50 1400 850], ...
     'Color', [0.96 0.96 0.96]);
 
@@ -192,7 +192,7 @@ btnAzDrw = uibutton(lg, 'Text', 'Draw', 'ButtonPushedFcn', @(~,~)runLoggedAction
 btnAzPlt = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('GIXS Azimuthal Plot', @()AziPlot_Callback([], []))); btnAzPlt.Layout.Row = 28; btnAzPlt.Layout.Column = [5 6];
 
 % --- Row 30: Footer ---
-lblFooter = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
+lblFooter = uilabel(lg, 'Text', ['Designed By Y.Y.Kim v', pgixsVersion()], 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
 lblFooter.Layout.Row = 30; lblFooter.Layout.Column = [1 6];
 
 % ========================= 2. Right Plot Panel ===========================

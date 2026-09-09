@@ -12,7 +12,7 @@ clc;
 %% ========================================================================
 % 1. Main Window & Master Grid Setup
 % ========================================================================
-GUI.main = uifigure('Name','Grazing Incidence X-ray Scattering Series v2.0',...
+GUI.main = uifigure('Name',['Grazing Incidence X-ray Scattering Series v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[50 50 1600 900], 'Color', [0.96 0.96 0.96]);
 movegui(GUI.main, 'center');
 

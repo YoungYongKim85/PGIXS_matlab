@@ -70,6 +70,14 @@ some calculations changed, so the same raw data can produce different numbers.
   피치만 얻기 위해). `loadPGIXSDetectorMask`가 이 함수를 쓰므로 표는 한 곳에만
   있습니다.
 
+### 버전 표기 / Versioning
+
+- **모든 창이 같은 버전을 표시합니다.** 이전에는 도구마다 `v2.0` / `v2.1` / `v1.0`이
+  제각각 하드코딩돼 있어 서로 맞지 않았습니다. 이제 창 제목·하단 라벨 20곳이
+  모두 `pgixsVersion()`을 읽습니다. H5→TIFF 변환기가 출력 파일의 Software 태그에
+  쓰는 문자열도 포함입니다 — 변환한 TIFF가 어느 버전에서 나왔는지 파일 자체에
+  남습니다.
+
 ### Python 버전과의 관계 / Relationship to the Python version
 
 두 구현은 **수치적으로 동일하지 않습니다.** 피크 위치는 6e-4 Å⁻¹ 이내로 일치하지만,

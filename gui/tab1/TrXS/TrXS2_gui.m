@@ -10,7 +10,7 @@ end
 clc;
 
 % ============================ GUI Setup ==================================
-GUI.main = uifigure('Name','Transmission X-ray Scattering Series v2.0',...
+GUI.main = uifigure('Name',['Transmission X-ray Scattering Series v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[50 50 1500 850], ...
     'Color', [0.96 0.96 0.96]);
 
@@ -154,7 +154,7 @@ btnAutoPlot.Layout.Row = 26;
 btnAutoPlot.Layout.Column = [1 2];
 GUI.hParCom = uicheckbox(lg, 'Text', 'Parallel', 'Value', 0); GUI.hParCom.Layout.Row = 26; GUI.hParCom.Layout.Column = [3 4];
 
-lblFooter = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]); lblFooter.Layout.Row = 30;
+lblFooter = uilabel(lg, 'Text', ['Designed By Y.Y.Kim v', pgixsVersion()], 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]); lblFooter.Layout.Row = 30;
 
 % ========================= 2. Middle & Right Panels ======================
 midGrid = uigridlayout(mainGrid, [2 1]); midGrid.RowHeight = {'1x', '1x'}; midGrid.Layout.Row = 1; midGrid.Layout.Column = 2; midGrid.Padding = [0 0 0 0];

@@ -3,7 +3,7 @@ function Converter_gui
 clc;
 
 % ============================ GUI Setup ==================================
-mainF = figure('Name', 'H5 to TIFF Converter v2.0', ...
+mainF = figure('Name', ['H5 to TIFF Converter v', pgixsVersion()], ...
     'NumberTitle', 'off', 'MenuBar', 'none', 'ToolBar', 'none', ...
     'Units', 'pixels', 'Position', [300, 300, 500, 540], ...
     'Resize', 'off', 'Color', [0.94 0.94 0.94]);
@@ -428,7 +428,7 @@ uicontrol('Parent', mainF, 'Style', 'pushbutton', 'String', 'LOAD & CONVERT', ..
             tagstruct.SampleFormat        = Tiff.SampleFormat.UInt;  % unsigned integer
             tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
             tagstruct.Compression         = Tiff.Compression.None;
-            tagstruct.Software            = 'Converter_gui v2.2.3';
+            tagstruct.Software            = ['Converter_gui v', pgixsVersion()];
             t.setTag(tagstruct);
             t.write(img);
             t.close();

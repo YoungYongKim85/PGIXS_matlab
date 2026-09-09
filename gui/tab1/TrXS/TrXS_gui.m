@@ -14,7 +14,7 @@ end
 clc;
 
 % ============================ GUI Setup ==================================
-GUI.main = uifigure('Name','Transmission X-ray Scattering v2.0',...
+GUI.main = uifigure('Name',['Transmission X-ray Scattering v', pgixsVersion()],...
     'NumberTitle','off', 'Position',[100 50 1200 850], ...
     'Color', [0.96 0.96 0.96]);
 
@@ -202,7 +202,7 @@ btnAziDraw.Layout.Row = 21; btnAziDraw.Layout.Column = [3 4];
 btnAziPlot = uibutton(lg, 'Text', 'Plot', 'ButtonPushedFcn', @(~,~)runLoggedAction('TrXS Azimuthal Plot', @()AziPlot_Callback([], []))); 
 btnAziPlot.Layout.Row = 21; btnAziPlot.Layout.Column = [5 6];
 
-lbl19 = uilabel(lg, 'Text', 'Designed By Y.Y.Kim v2.0', 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
+lbl19 = uilabel(lg, 'Text', ['Designed By Y.Y.Kim v', pgixsVersion()], 'FontSize', 9, 'FontColor', [0.5 0.5 0.5]);
 lbl19.Layout.Row = 23; lbl19.Layout.Column = [1 6];
 
 % ========================= 2. Right Panel (Plot & Control) ===============

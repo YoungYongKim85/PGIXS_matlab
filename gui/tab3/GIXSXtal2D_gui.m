@@ -80,7 +80,7 @@ function GIXSXtal2D_gui
     % Navigator 패널) 위에 그대로 겹쳐서 그려지고 있었음. leftPanelData의
     % 자식으로 옮기고, Navigator 패널 아래에 별도 여백을 확보해 배치.
     lblVersion = uilabel(leftPanelData);
-    lblVersion.Text = 'Designed By Y.Y.Kim v1.0 (Modern UI)';
+    lblVersion.Text = ['Designed By Y.Y.Kim v', pgixsVersion(), ' (Modern UI)'];
     lblVersion.BackgroundColor = coldf;
     lblVersion.FontSize = 10;
     setPos(lblVersion, lpW, lpH, [0.03 0.008 0.90 0.03]);
