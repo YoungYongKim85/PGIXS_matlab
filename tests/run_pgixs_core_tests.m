@@ -101,6 +101,7 @@ function run_pgixs_core_tests()
     testActiveFilesDoNotUseHardcodedWindowsRoots(repoRoot);
     testMainGuiPathScope(repoRoot);
     testInactiveGuiFilesAreNotReferenced(repoRoot);
+    testDistPackageIsCurrent(repoRoot);
     testCheckcode(repoRoot);
     fprintf('PGIXS core tests passed\n');
 end
@@ -2126,6 +2127,111 @@ function activeFiles = collectPGIXSActiveMatlabFiles(repoRoot)
         end
     end
     activeFiles = activeFiles(1:nFiles);
+end
+
+function testDistPackageIsCurrent(repoRoot)
+% dist/build is a generated, git-ignored copy of functions/ and gui/tab1/
+% that gets handed to the MATLAB Compiler. Nothing regenerates it
+% automatically, so it silently rots: at one point it was three weeks
+% behind and every behavioural fix made in that time was missing from it,
+% meaning a build from it would have shipped bugs already fixed in the
+% source.
+%
+% It is worse than a stale artifact. addpath(genpath(repoRoot)) puts
+% dist/build ahead of functions/, so a stale copy shadows the real code --
+% that has already caused a comparison to measure the wrong version and be
+% believed. This test turns "someone has to remember to re-run
+% build_dist_package" into something the suite checks.
+%
+% No dist/build at all is fine; it just has not been assembled yet.
+
+    buildRoot = fullfile(repoRoot, 'dist', 'build');
+    if ~isfolder(buildRoot)
+        return;
+    end
+
+    stale = {};
+    sourceRel = listSourceMFiles(repoRoot);
+    for ii = 1:numel(sourceRel)
+        rel = sourceRel{ii};
+        srcFile = fullfile(repoRoot, rel);
+        dstFile = fullfile(buildRoot, rel);
+        if ~isfile(dstFile)
+            stale{end+1} = sprintf('missing from dist/build: %s', rel); %#ok<AGROW>
+        elseif ~filesHaveSameBytes(srcFile, dstFile)
+            stale{end+1} = sprintf('out of date in dist/build: %s', rel); %#ok<AGROW>
+        end
+    end
+
+    % The packaged entry point comes from dist/PGIXS.m, not the repo root
+    % one -- it is the Tab3-excluded variant.
+    entrySrc = fullfile(repoRoot, 'dist', 'PGIXS.m');
+    entryDst = fullfile(buildRoot, 'PGIXS.m');
+    if isfile(entrySrc)
+        if ~isfile(entryDst)
+            stale{end+1} = 'missing from dist/build: PGIXS.m'; %#ok<AGROW>
+        elseif ~filesHaveSameBytes(entrySrc, entryDst)
+            stale{end+1} = 'out of date in dist/build: PGIXS.m (from dist/PGIXS.m)'; %#ok<AGROW>
+        end
+    end
+
+    % Files deleted from the source but still sitting in the package would
+    % be compiled in, and would shadow nothing but still ship.
+    sourceSet = containers.Map(sourceRel, num2cell(true(size(sourceRel))));
+    packaged = listMFilesUnder(buildRoot);
+    for ii = 1:numel(packaged)
+        rel = packaged{ii};
+        if strcmp(rel, 'PGIXS.m')
+            continue;
+        end
+        if ~isKey(sourceSet, rel)
+            stale{end+1} = sprintf('no longer in the source: %s', rel); %#ok<AGROW>
+        end
+    end
+
+    if ~isempty(stale)
+        error('PGIXS:StaleDistPackage', ...
+            ['dist/build is out of step with the source (%d file(s)).\n' ...
+             'Regenerate it before compiling:\n' ...
+             '    run(''dist/build_dist_package.m'')\n\n%s'], ...
+            numel(stale), strjoin(stale(1:min(20, numel(stale))), sprintf('\n')));
+    end
+end
+
+function rel = listSourceMFiles(repoRoot)
+    rel = [listMFilesUnder(fullfile(repoRoot, 'functions'), 'functions'); ...
+           listMFilesUnder(fullfile(repoRoot, 'gui', 'tab1'), fullfile('gui', 'tab1'))];
+end
+
+function rel = listMFilesUnder(root, prefix)
+    if nargin < 2
+        prefix = '';
+    end
+    rel = {};
+    if ~isfolder(root)
+        return;
+    end
+    entries = dir(fullfile(root, '**', '*.m'));
+    rel = cell(numel(entries), 1);
+    for ii = 1:numel(entries)
+        sub = erase(fullfile(entries(ii).folder, entries(ii).name), [root, filesep]);
+        if isempty(prefix)
+            rel{ii} = sub;
+        else
+            rel{ii} = fullfile(prefix, sub);
+        end
+    end
+end
+
+function same = filesHaveSameBytes(a, b)
+    da = dir(a); db = dir(b);
+    if isempty(da) || isempty(db) || da.bytes ~= db.bytes
+        same = false;
+        return;
+    end
+    fa = fopen(a, 'r'); ba = fread(fa, Inf, '*uint8'); fclose(fa);
+    fb = fopen(b, 'r'); bb = fread(fb, Inf, '*uint8'); fclose(fb);
+    same = isequal(ba, bb);
 end
 
 function testCheckcode(repoRoot)
