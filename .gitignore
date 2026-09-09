@@ -43,3 +43,10 @@ dist/build/
 dist/*.prj
 dist/PGIXS/
 dist/PGIXS_resources/
+
+# Node modules for docs/tools/md_to_docx.js, and the .docx it generates: Word
+# rewrites the table-of-contents field on open, so a tracked copy shows up as
+# modified whenever anyone reads it. Run `npm run manual` in docs/tools.
+node_modules/
+package-lock.json
+docs/manual_ko.docx

@@ -87,8 +87,15 @@ in the Python repository under `tools/matlab_crosscheck/`.
 
 ## Documentation
 
-Per-tool manuals are in `Manual/` (Korean, `.docx`). Notes on file formats and
-internal contracts are in `docs/`.
+- **[docs/manual_ko.md](docs/manual_ko.md)** -- the full user manual (Korean),
+  covering every tool: the console, SDD calibration, GIXS and TrXS (single
+  frame and series), the transmittance and penetration-depth calculators, the
+  H5-to-TIFF converter, and the Tab 3 indexing tools. It also documents where
+  this version and the Python one agree and where they deliberately differ.
+  For a Word copy, run `npm install && npm run manual` in `docs/tools`.
+- `Manual/` -- the older per-tool manuals (Korean, `.docx`), which go deeper on
+  the Tab 3 indexing tools than the consolidated manual does.
+- `docs/` -- notes on file formats and internal contracts.
 
 ## Contributing and support
 

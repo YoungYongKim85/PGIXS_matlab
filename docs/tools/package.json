@@ -1,0 +1,11 @@
+{
+  "name": "pgixs-matlab-docs-tools",
+  "private": true,
+  "description": "Builds docs/manual_ko.docx from the Markdown source. Shared with the Python repository's copy of md_to_docx.js.",
+  "scripts": {
+    "manual": "node md_to_docx.js ../manual_ko.md ../manual_ko.docx"
+  },
+  "dependencies": {
+    "docx": "9.7.1"
+  }
+}
