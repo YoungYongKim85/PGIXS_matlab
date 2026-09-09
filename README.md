@@ -11,6 +11,12 @@ This repository is the **original MATLAB implementation**. A
 **[Python version](https://github.com/YoungYongKim85/PGIXS_python)** covers the
 same raw-data reduction workflow and runs without a MATLAB license.
 
+## Version
+
+The suite version is `functions/Others/pgixsVersion.m`; the console window
+title and footer report it. Releases are tagged `vX.Y.Z` and what changed --
+including which fixes move numbers -- is in [CHANGELOG.md](CHANGELOG.md).
+
 ## Requirements
 
 MATLAB R2020a or newer (uses `uifigure`/App Designer-style UI components and

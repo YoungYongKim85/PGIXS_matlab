@@ -19,7 +19,7 @@ function PGIXS
     if ~isempty(hF), close(hF); end
 
     % 모던 UI 피겨 생성
-    mainF = uifigure('Name', 'pGIXS Console v2.0', ...
+    mainF = uifigure('Name', ['pGIXS Console v', pgixsVersion()], ...
         'Position', [100, 100, 380, 600], ... % 적절한 세로형 창 크기
         'Color', [0.96 0.96 0.98]);
     movegui(mainF, 'center'); 
@@ -37,7 +37,7 @@ function PGIXS
     tab3 = uitab(tgroup, 'Title', '2D Analysis');
 
     % 하단 푸터 (Version Info)
-    footer = uilabel(mainGrid, 'Text', 'Designed by Y.Y.Kim v2.0 (PLS-II BL3C)', ...
+    footer = uilabel(mainGrid, 'Text', ['Designed by Y.Y.Kim v', pgixsVersion(), ' (PLS-II BL3C)'], ...
         'FontSize', 11, 'FontColor', [0.3 0.3 0.3], 'HorizontalAlignment', 'center');
     footer.Layout.Row = 2; footer.Layout.Column = 1;
 
