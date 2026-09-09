@@ -46,7 +46,7 @@ PGIXS
 | --- |
 | SDD calculator · Converter · TrXS · TrXS-series · GIXS · GIXS-series · Transmittance · Penetration Depth |
 
-![그림 1. pGIXS Console — Console 탭. 여기서 각 도구 창을 띄운다. 하단에 스위트 버전이 표시된다](figures/fig01.png)
+![그림 1. 배포판 pGIXS Console. 여기서 각 도구 창을 띄운다. 하단에 스위트 버전이 표시된다](figures/fig01.png)
 
 ### 1.2 실행 환경
 
