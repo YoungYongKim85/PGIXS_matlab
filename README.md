@@ -93,6 +93,10 @@ in the Python repository under `tools/matlab_crosscheck/`.
 
 ## Documentation
 
+- **[docs/manual_en_summary.md](docs/manual_en_summary.md)** -- an English
+  condensation of the manual: what each tool does, what the reduction applies,
+  and how this implementation compares numerically with the Python one. Start
+  here if you do not read Korean.
 - **[docs/manual_ko.md](docs/manual_ko.md)** -- the full user manual (Korean),
   covering every tool: the console, SDD calibration, GIXS and TrXS (single
   frame and series), the transmittance and penetration-depth calculators, the
