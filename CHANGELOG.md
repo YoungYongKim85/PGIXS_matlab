@@ -4,7 +4,7 @@
 
 ---
 
-## ⚠️ 다음 버전 (미배포) / Unreleased — Q-space 1D 컷 결과가 달라집니다
+## ⚠️ v2.2.0 — Q-space 1D 컷 결과가 달라집니다 / Q-space 1D cuts change
 
 - **Map format이 Qxy/Qz·Qy/Qz일 때 1D 컷(Line, Cakecut, Accumulation, Azimuthal)이
   갭 경계 3픽셀을 Q 격자로 재보간하기 *전에* 뺍니다.** 이전에는 검출기 픽셀 기준
