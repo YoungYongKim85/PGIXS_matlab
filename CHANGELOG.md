@@ -4,6 +4,20 @@
 
 ---
 
+## ⚠️ 다음 버전 (미배포) / Unreleased — Q-space 1D 컷 결과가 달라집니다
+
+- **Map format이 Qxy/Qz·Qy/Qz일 때 1D 컷(Line, Cakecut, Accumulation, Azimuthal)이
+  갭 경계 3픽셀을 Q 격자로 재보간하기 *전에* 뺍니다.** 이전에는 검출기 픽셀 기준
+  마스크를 재보간된 `Itrans` 위에 그대로 찍었습니다. `Itrans`가 원본과 크기가 같아
+  크기 비교로 걸러지지 않았기 때문인데, 그 결과 **엉뚱한 Q 위치의 값이 빠지고** 실제
+  갭 옆 픽셀은 보간을 거쳐 커브에 섞였습니다. 이제 q-Map Cal.이 버퍼를 뺀 이미지를
+  따로 재보간해 두고(`ItransCut`), 화면의 Qxy/Qz 이미지는 그대로 둡니다. Python
+  버전(v0.3.2)과 같은 방식입니다.
+- **Pixel 모드의 Accumulation 컷도 갭 경계 3픽셀을 뺍니다.** 다른 1D 컷과 Python
+  버전은 이미 빼고 있었고, Accumulation만 빠져 있었습니다.
+
+---
+
 ## ⚠️ v2.1.0 — 일부 결과 수치가 달라집니다 / Some numerical results change
 
 이전 배포판으로 처리한 결과와 **직접 비교하기 전에 아래 항목을 확인하세요.** 계산이

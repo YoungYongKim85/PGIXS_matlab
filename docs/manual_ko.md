@@ -562,7 +562,7 @@ X선이 시료에 얼마나 들어가는지를 입사각에 대해 계산한다.
 | --- | --- |
 | **q-Map Cal. / q-Cal.** | 검출기 픽셀을 Q-space 좌표로 변환하는 계산. GIXS는 입사각을 반영해 Qxy/Qz를, TrXS는 normal-incidence 기준으로 Qy/Qz를 만든다. 동시에 `solid angle × polarization × 캡톤 투과율`(Eiger4M이면 `× 실리콘 흡수`)로 강도를 나눈다. **모든 1D 처리의 전제 조건.** |
 | **Detector mask** | 검출기별 불량 픽셀·비활성 영역을 NaN으로 제외하는 마스크. 데이터 로드 시점에 자동 적용된다(Eiger4M 약 6.2%, MarCCD/SX165 약 21.6%). |
-| **Gap 경계 버퍼 (3픽셀)** | 모듈 갭에 바로 붙은 픽셀은 전하 수집이 불완전하거나 이웃과 합산되어 값이 치우칠 수 있다. 그래서 마스크를 3픽셀 팽창시킨 영역을 **1D 축약 경로에서만** 추가로 제외한다(`dilatePGIXSGapMask`). **2D 이미지 표시와 ROI 합계에는 적용하지 않는다.** 제외된 픽셀은 기하에는 남아 coverage를 떨어뜨린다. |
+| **Gap 경계 버퍼 (3픽셀)** | 모듈 갭에 바로 붙은 픽셀은 전하 수집이 불완전하거나 이웃과 합산되어 값이 치우칠 수 있다. 그래서 마스크를 3픽셀 팽창시킨 영역을 **1D 축약 경로에서만** 추가로 제외한다(`dilatePGIXSGapMask`). **2D 이미지 표시와 ROI 합계에는 적용하지 않는다.** 제외된 픽셀은 기하에는 남아 coverage를 떨어뜨린다. Map format이 Qxy/Qz·Qy/Qz인 1D 컷은 **Q 격자로 재보간하기 전에** 이 픽셀을 뺀 별도 이미지(`ItransCut`)를 쓴다 — 화면의 Qxy/Qz 이미지(`Itrans`)는 그대로다. |
 | **Coverage** | `유효 데이터 픽셀 수 / 그 bin에 기하학적으로 속하는 전체 픽셀 수` (0~1). **TrXS Circular Average의 `Min cov`** 는 이 값이 임계값보다 낮은 bin을 NaN으로 지운다(실제 컷오프). |
 | **Mean / Median** | bin 대표값. **MATLAB 버전의 Mean은 단순 산술평균이다** (`processPGIXSRadiusBin1D`). Median을 켜면 중앙값. — Python 버전은 이 자리에서 Huber 강건 평균을 쓴다(13절). |
 | **Multishot** | 같은 시리즈의 여러 샷을 평균해 한 장으로 읽는 옵션. **MATLAB은 합을 파일 수로 나누므로, 어느 한 샷에서 NaN인 픽셀은 평균도 NaN이 된다.** |

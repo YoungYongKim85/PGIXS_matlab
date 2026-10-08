@@ -9,7 +9,7 @@ function [linepos, line1d] = Anglecut1d(param, imgData)
         if isfield(param, 'Mapping')
             switch param.Mapping
                 case 'Pixel', data2d = single(param.data);
-                case 'Qy/Qz', data2d = single(param.Itrans);
+                case 'Qy/Qz', data2d = getPGIXSCutItrans(param);
                 otherwise,    data2d = single(param.data);
             end
         else
@@ -22,10 +22,11 @@ function [linepos, line1d] = Anglecut1d(param, imgData)
     % Gap-adjacent pixels bordering the masked detector gap can carry
     % biased counts; exclude a 3-pixel shoulder (measured to cover most
     % of the edge bias on real data) so it does not bleed into the
-    % bilinear interpolation below. Only applies in detector-pixel space
-    % (skipped for Q-remapped Itrans, which already handles gap/edge
-    % NaNs).
-    if isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
+    % bilinear interpolation below. The mask is in detector-pixel space:
+    % a Q-remapped image already had the shoulder blanked before its
+    % regrid (buildPGIXSCutItrans). A frame passed in as imgData is always
+    % detector-space.
+    if (nargin >= 2 || ~isPGIXSQMapping(param)) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
         data2d(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
     end
 

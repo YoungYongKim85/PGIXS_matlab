@@ -5,8 +5,8 @@ if isfield(param, 'Mapping')
     switch param.Mapping
         case 'Pixel',  data2d = single(param.data);
         case 'Alpha',  data2d = single(param.AlphaMap);
-        case 'Qxy/Qz', data2d = single(param.Itrans);
-        case 'Qy/Qz',  data2d = single(param.Itrans);
+        case 'Qxy/Qz', data2d = getPGIXSCutItrans(param);
+        case 'Qy/Qz',  data2d = getPGIXSCutItrans(param);
     end
 else
     data2d = single(param.Stack(:,:,1));
@@ -15,9 +15,9 @@ end
 % Gap-adjacent pixels bordering the masked detector gap can carry biased
 % counts; exclude a 3-pixel shoulder (measured to cover most of the edge
 % bias on real data) so it does not bleed into the bilinear interpolation
-% below. Only applies in detector-pixel space (skipped for Q-remapped
-% Itrans, which already handles gap/edge NaNs).
-if isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
+% below. The mask is in detector-pixel space: a Q-remapped image already
+% had the shoulder blanked before its regrid (buildPGIXSCutItrans).
+if ~isPGIXSQMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
     data2d(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
 end
 
