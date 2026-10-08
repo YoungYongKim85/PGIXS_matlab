@@ -75,6 +75,8 @@ function run_pgixs_core_tests()
     testGIXSLinecutStack();
     testTrXSLinecutGapAlignment();
     testAnglecutGapBuffer();
+    testCutItransBlanksGapShoulderBeforeRegrid();
+    testQMappingCutUsesCutItransWithoutDetectorMask();
     testAnglecutGiFullAngleRange();
     testGIXSAzimuthalStack();
     testGIXSAzimuthalStackGapBuffer();
@@ -1363,6 +1365,59 @@ function testAnglecutGapBuffer()
     assert(~isempty(finiteI), 'Line cut should retain valid samples with a gap buffer applied.');
     assert(all(abs(double(finiteI) - 10) < 1e-6), ...
         'Line cut should exclude gap-adjacent edge-biased pixels using the detector mask, not just the true gap.');
+end
+
+function testCutItransBlanksGapShoulderBeforeRegrid()
+    % The gap shoulder is a detector-pixel mask, so it has to be applied to
+    % param.data before the Q regrid; param.Itrans (the 2D display) keeps it.
+    n = 21;
+    p = struct();
+    p.data = single(10 * ones(n, n));
+    p.Mask = single(ones(n, n));
+    p.Mask(:, 10) = NaN;
+    p.Itrans = p.data;
+    identityRegrid = @(q) deal([], [], q.data);
+
+    Icut = buildPGIXSCutItrans(p, identityRegrid);
+
+    shoulder = dilatePGIXSGapMask(p.Mask, 3);
+    assert(all(isnan(Icut(shoulder))), 'The gap shoulder should be blanked before the regrid.');
+    assert(all(Icut(~shoulder) == 10), 'Pixels away from the gap should be untouched.');
+    assert(all(p.Itrans(:) == 10), 'param.Itrans (the display image) must keep every pixel.');
+
+    p = rmfield(p, 'Mask');
+    assert(isequal(buildPGIXSCutItrans(p, identityRegrid), p.Itrans), ...
+        'Without a detector mask the cut image should be Itrans itself.');
+end
+
+function testQMappingCutUsesCutItransWithoutDetectorMask()
+    % A Qxy/Qz cut reduces ItransCut and must not stamp the detector-pixel
+    % gap mask on it: Itrans has the detector's size, so the old size check
+    % let the mask land on the wrong (Q-grid) cells.
+    n = 41; c = 21;
+    [x, y] = meshgrid(single((1:n) - c), single(-((1:n) - c)));
+    p = struct();
+    p.data = single(10 * ones(n, n));
+    p.Itrans = single(10 * ones(n, n));
+    p.ItransCut = single(20 * ones(n, n));
+    p.bpos = single([c, c]);
+    p.yposmv = single(0);
+    p.zposmv = single(0);
+    p.QMapMet = 'Qxy/Qz';
+    p.Q = sqrt(x.^2 + y.^2);
+    p.Qr = x; p.Qz = y;
+    p.qr = x(1, :); p.qz = y(:, 1)';   % the regridded image's own Q axes
+    p.ang = single(0);
+    p.Mapping = 'Qxy/Qz';
+
+    [~, noMask] = Anglecut1d_gi(p);
+    p.Mask = single(ones(n, n));
+    p.Mask(:, 15:17) = NaN;   % a detector gap right across the leftward ray
+    [~, withMask] = Anglecut1d_gi(p);
+
+    assert(all(abs(double(withMask(:, 3)) - 20) < 1e-6), 'A Qxy/Qz cut should reduce ItransCut.');
+    assert(isequal(size(withMask), size(noMask)), ...
+        'The detector-pixel gap mask must not be stamped on the Q-grid image.');
 end
 
 function testAnglecutGiFullAngleRange()

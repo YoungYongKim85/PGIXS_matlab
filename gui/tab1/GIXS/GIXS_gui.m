@@ -865,7 +865,7 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         switch param.Mapping
             case 'Pixel', PlotAzi = param.data;
             case 'Alpha', PlotAzi = param.AlphaMap;
-            case {'Qxy/Qz', 'Qy/Qz'}, PlotAzi = param.Itrans;
+            case {'Qxy/Qz', 'Qy/Qz'}, PlotAzi = getPGIXSCutItrans(param);
         end
         
         % [수정] radii 범위 계산: pix_pos + minus ~ pix_pos + plus (직관적)
@@ -881,8 +881,10 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         D = PlotAzi;
 
         % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀 버퍼로 추가 제외.
-        % detector-pixel 공간(Pixel/Alpha)에서만 유효; Q-remapped Itrans는 크기가 달라 자동 skip.
-        if isfield(param, 'Mask') && isequal(size(param.Mask), size(D))
+        % detector-pixel 공간(Pixel/Alpha)에서만 유효하다. Q 이미지는 원본과 크기가
+        % 같아 크기 비교로는 걸러지지 않으므로 Mapping으로 거르고, 대신 재보간 전에
+        % 이미 제외한 ItransCut을 쓴다(buildPGIXSCutItrans).
+        if ~isPGIXSQMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(D))
             gapAdj = dilatePGIXSGapMask(param.Mask, 3);
             idxTmp = sub2ind(size(D), Y_idx(valid), X_idx(valid));
             validSub = ~gapAdj(idxTmp);

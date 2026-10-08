@@ -45,10 +45,12 @@ function param = processGIXS2D(param, opts)
             [param.qr, param.qz, param.Itrans] = ImageTransformQ_gi(param);
             param.qr = single(param.qr);
             param.qz = single(param.qz);
+            param.ItransCut = buildPGIXSCutItrans(param, @ImageTransformQ_gi);
         case 'Qy/Qz'
             [param.qy, param.qz, param.Itrans] = ImageTransformQ_tr(param);
             param.qy = single(param.qy);
             param.qz = single(param.qz);
+            param.ItransCut = buildPGIXSCutItrans(param, @ImageTransformQ_tr);
     end
     [param.tth, param.af, param.AlphaMap] = ImageTransform_Alpha(param);
     param.correctionI = 1;

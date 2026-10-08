@@ -24,7 +24,8 @@ function prep = CakeCut_gi_prep(param, stCKang, fiCKang)
 
     % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀 버퍼로 추가 제외.
     % 기하 정보는 프레임에 무관하게 고정이므로 여기서 한 번만 반영한다.
-    if isfield(param, 'Mask') && isequal(size(param.Mask), size(Qmap))
+    % 검출기 픽셀 기준 마스크라 Q 격자 기하에는 적용하지 않는다.
+    if ~any(strcmp(modeName, {'Qxy/Qz', 'Qy/Qz'})) && isfield(param, 'Mask') && isequal(size(param.Mask), size(Qmap))
         geom_valid = geom_valid & ~dilatePGIXSGapMask(param.Mask, 3);
     end
 
