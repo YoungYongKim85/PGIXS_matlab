@@ -4,6 +4,16 @@
 
 ---
 
+## ⚠️ 다음 버전 (미배포) / Unreleased — Alpha 매핑 1D 컷 결과가 달라집니다
+
+- **Map format이 Alpha일 때 1D 컷(Line, Cakecut, Accumulation, Azimuthal)도 갭 경계
+  3픽셀을 재보간 *전에* 뺍니다.** v2.2.0에서 Qxy/Qz·Qy/Qz에 적용한 것과 같은 문제와
+  수정입니다. `AlphaMap`도 원본과 크기가 같아서 검출기 픽셀 기준 마스크가 재보간된
+  이미지의 엉뚱한 위치에 찍히고 있었습니다. 이제 q-Map Cal.이 `AlphaMapCut`을 따로
+  만들고, 화면의 Alpha 이미지는 그대로 둡니다.
+
+---
+
 ## ⚠️ v2.2.0 — Q-space 1D 컷 결과가 달라집니다 / Q-space 1D cuts change
 
 - **Map format이 Qxy/Qz·Qy/Qz일 때 1D 컷(Line, Cakecut, Accumulation, Azimuthal)이

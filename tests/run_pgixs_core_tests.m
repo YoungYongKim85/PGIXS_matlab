@@ -77,6 +77,7 @@ function run_pgixs_core_tests()
     testAnglecutGapBuffer();
     testCutItransBlanksGapShoulderBeforeRegrid();
     testQMappingCutUsesCutItransWithoutDetectorMask();
+    testAlphaMappingCutUsesCutAlphaMapWithoutDetectorMask();
     testAnglecutGiFullAngleRange();
     testGIXSAzimuthalStack();
     testGIXSAzimuthalStackGapBuffer();
@@ -1378,7 +1379,7 @@ function testCutItransBlanksGapShoulderBeforeRegrid()
     p.Itrans = p.data;
     identityRegrid = @(q) deal([], [], q.data);
 
-    Icut = buildPGIXSCutItrans(p, identityRegrid);
+    Icut = buildPGIXSCutImage(p, identityRegrid, 'Itrans');
 
     shoulder = dilatePGIXSGapMask(p.Mask, 3);
     assert(all(isnan(Icut(shoulder))), 'The gap shoulder should be blanked before the regrid.');
@@ -1386,7 +1387,7 @@ function testCutItransBlanksGapShoulderBeforeRegrid()
     assert(all(p.Itrans(:) == 10), 'param.Itrans (the display image) must keep every pixel.');
 
     p = rmfield(p, 'Mask');
-    assert(isequal(buildPGIXSCutItrans(p, identityRegrid), p.Itrans), ...
+    assert(isequal(buildPGIXSCutImage(p, identityRegrid, 'Itrans'), p.Itrans), ...
         'Without a detector mask the cut image should be Itrans itself.');
 end
 
@@ -1418,6 +1419,34 @@ function testQMappingCutUsesCutItransWithoutDetectorMask()
     assert(all(abs(double(withMask(:, 3)) - 20) < 1e-6), 'A Qxy/Qz cut should reduce ItransCut.');
     assert(isequal(size(withMask), size(noMask)), ...
         'The detector-pixel gap mask must not be stamped on the Q-grid image.');
+end
+
+function testAlphaMappingCutUsesCutAlphaMapWithoutDetectorMask()
+    % Alpha is a regrid at the detector's size too: same rule as Qxy/Qz.
+    n = 41; c = 21;
+    [x, y] = meshgrid(single((1:n) - c), single(-((1:n) - c)));
+    p = struct();
+    p.data = single(10 * ones(n, n));
+    p.AlphaMap = single(10 * ones(n, n));
+    p.AlphaMapCut = single(20 * ones(n, n));
+    p.bpos = single([c, c]);
+    p.yposmv = single(0);
+    p.zposmv = single(0);
+    p.QMapMet = 'Qxy/Qz';
+    p.Q = sqrt(x.^2 + y.^2);
+    p.Qr = x; p.Qz = y;
+    p.tth = x(1, :); p.af = y(:, 1)';
+    p.ang = single(0);
+    p.Mapping = 'Alpha';
+
+    [~, noMask] = Anglecut1d_gi(p);
+    p.Mask = single(ones(n, n));
+    p.Mask(:, 15:17) = NaN;
+    [~, withMask] = Anglecut1d_gi(p);
+
+    assert(all(abs(double(withMask(:, 3)) - 20) < 1e-6), 'An Alpha cut should reduce AlphaMapCut.');
+    assert(isequal(size(withMask), size(noMask)), ...
+        'The detector-pixel gap mask must not be stamped on the Alpha image.');
 end
 
 function testAnglecutGiFullAngleRange()

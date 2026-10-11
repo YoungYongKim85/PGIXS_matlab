@@ -24,7 +24,7 @@ function param = processTrXS2D(param, opts)
     [param.qy, param.qz, param.Itrans] = ImageTransformQ_tr(param);
     param.qy = single(param.qy);
     param.qz = single(param.qz);
-    param.ItransCut = buildPGIXSCutItrans(param, @ImageTransformQ_tr);
+    param.ItransCut = buildPGIXSCutImage(param, @ImageTransformQ_tr, 'Itrans');
     param.correctionI = 1;
 end
 
