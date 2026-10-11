@@ -14,8 +14,8 @@ function [linepos, line1d] = CakeCut_gi(param, stCKang, fiCKang)
 
     switch modeName
         case 'Pixel',                  data2d = single(param.data);
-        case 'Alpha',                  data2d = single(param.AlphaMap);
-        case {'Qxy/Qz', 'Qy/Qz'},      data2d = getPGIXSCutItrans(param);
+        case 'Alpha',                  data2d = getPGIXSCutImage(param, 'AlphaMap');
+        case {'Qxy/Qz', 'Qy/Qz'},      data2d = getPGIXSCutImage(param, 'Itrans');
         otherwise,                     data2d = single(param.data); modeName = 'Pixel';
     end
 
@@ -28,9 +28,9 @@ function [linepos, line1d] = CakeCut_gi(param, stCKang, fiCKang)
 
     % gap/hot은 상위 mask에서 NaN 처리됨. 측정된 0/음수는 유지(고각 bias 방지).
     % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀 버퍼로 추가 제외.
-    % 검출기 픽셀 기준 마스크라 Q 이미지에는 찍지 않는다 -- Q 이미지는 재보간
-    % 전에 이미 제외됐다(buildPGIXSCutItrans).
-    if ~any(strcmp(modeName, {'Qxy/Qz', 'Qy/Qz'})) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
+    % 검출기 픽셀 기준 마스크라 재보간 이미지(Alpha, Q)에는 찍지 않는다 -- 재보간
+    % 전에 이미 제외됐다(buildPGIXSCutImage).
+    if ~any(strcmp(modeName, {'Alpha', 'Qxy/Qz', 'Qy/Qz'})) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
         data2d(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
     end
     valid_pix = isfinite(data2d) & isfinite(Qmap) & (Qmap > 0) & isfinite(AngMap);

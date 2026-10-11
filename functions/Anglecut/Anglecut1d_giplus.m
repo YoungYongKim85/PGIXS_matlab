@@ -3,17 +3,17 @@ function [linepos, line1d] = Anglecut1d_giplus(param)
 
 switch param.Mapping
     case 'Pixel',  data2d = single(param.data);
-    case 'Alpha',  data2d = single(param.AlphaMap);
-    case 'Qxy/Qz', data2d = getPGIXSCutItrans(param);
-    case 'Qy/Qz',  data2d = getPGIXSCutItrans(param);
+    case 'Alpha',  data2d = getPGIXSCutImage(param, 'AlphaMap');
+    case 'Qxy/Qz', data2d = getPGIXSCutImage(param, 'Itrans');
+    case 'Qy/Qz',  data2d = getPGIXSCutImage(param, 'Itrans');
 end
 
 % Gap-adjacent pixels bordering the masked detector gap can carry biased
 % counts; exclude a 3-pixel shoulder (measured to cover most of the edge
 % bias on real data) so it does not bleed into the bilinear interpolation
-% below. The mask is in detector-pixel space: a Q-remapped image already
-% had the shoulder blanked before its regrid (buildPGIXSCutItrans).
-if ~isPGIXSQMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
+% below. The mask is in detector-pixel space: a regridded (Alpha or Q) image already
+% had the shoulder blanked before its regrid (buildPGIXSCutImage).
+if ~isPGIXSRegriddedMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
     data2d(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
 end
 

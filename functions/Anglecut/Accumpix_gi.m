@@ -4,18 +4,18 @@ function [linepos, line1d] = Accumpix_gi(param, mPix, pPix)
 if isfield(param, 'Mapping')
     switch param.Mapping
         case 'Pixel',  data2d = single(param.data);
-        case 'Alpha',  data2d = single(param.AlphaMap);
-        case 'Qxy/Qz', data2d = getPGIXSCutItrans(param);
-        case 'Qy/Qz',  data2d = getPGIXSCutItrans(param);
+        case 'Alpha',  data2d = getPGIXSCutImage(param, 'AlphaMap');
+        case 'Qxy/Qz', data2d = getPGIXSCutImage(param, 'Itrans');
+        case 'Qy/Qz',  data2d = getPGIXSCutImage(param, 'Itrans');
     end
 else
     data2d = single(param.Stack(:,:,1));
 end
 
 % Same 3-pixel gap shoulder every other 1D cut drops (and the Python port's
-% accumulation cut) -- in detector-pixel space only; a Q-remapped image had
-% it blanked before its regrid (buildPGIXSCutItrans).
-if ~isPGIXSQMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
+% accumulation cut) -- in detector-pixel space only; a regridded (Alpha or Q) image had
+% it blanked before its regrid (buildPGIXSCutImage).
+if ~isPGIXSRegriddedMapping(param) && isfield(param, 'Mask') && isequal(size(param.Mask), size(data2d))
     data2d(dilatePGIXSGapMask(param.Mask, 3)) = NaN;
 end
 
