@@ -24,6 +24,7 @@ function run_pgixs_core_tests()
     testFrameFailureSummary();
     testSeriesPrefix();
     testSeriesFileList();
+    testNewSeriesFileSelection();
     testNewFileName();
     testOtherUtilities();
     testH5Metadata(repoRoot);
@@ -307,6 +308,23 @@ function testSeriesFileList()
     assert(nFiles == 2, 'Series file list should match exact extension and prefix.');
     assert(isequal(names, {'sample_0001.h5', 'sample_0002.h5'}), 'Series file list should be sorted.');
     assert(numel(files) == 2 && all(contains(files, rootDir)), 'Series file list should return full paths.');
+end
+
+function testNewSeriesFileSelection()
+    files = fullfile('C:\data', {'run_0001.h5', 'run_0002.h5', 'run_0003.h5', 'run_0004.h5', 'run_0005.h5'});
+    % 0003 left unchecked at Set/Table: 0001, 0002, 0004 loaded (nOld = 3).
+    assert(isequal(selectPGIXSNewSeriesFiles(files, files{4}, 3), 5), ...
+        'Auto Refresh must not re-read a file the series already holds.');
+    % Only a later block imported (0004, 0005): nothing new.
+    assert(isempty(selectPGIXSNewSeriesFiles(files, files{5}, 2)), ...
+        'Files before an imported block are not new.');
+    % Last file unknown: the old count from the top.
+    assert(isequal(selectPGIXSNewSeriesFiles(files, '', 2), 3:5), ...
+        'Without a last file the count of loaded frames is used.');
+    % Last file deleted from the folder: what sorts after its name is new.
+    remaining = files([1 2 4 5]);
+    assert(isequal(selectPGIXSNewSeriesFiles(remaining, files{3}, 3), 3:4), ...
+        'A deleted last file still marks where the new files start.');
 end
 
 function testNewFileName()
@@ -2330,6 +2348,7 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'IO', 'formatPGIXSFrameFailureWarning.m')
         fullfile(repoRoot, 'functions', 'IO', 'summarizePGIXSFrameFailures.m')
         fullfile(repoRoot, 'functions', 'IO', 'listPGIXSSeriesFiles.m')
+        fullfile(repoRoot, 'functions', 'IO', 'selectPGIXSNewSeriesFiles.m')
         fullfile(repoRoot, 'functions', 'IO', 'loadPGIXSMultishotAverage.m')
         fullfile(repoRoot, 'functions', 'IO', 'normalizePGIXSSeriesPrefix.m')
         fullfile(repoRoot, 'functions', 'IO', 'readPGIXSH5Metadata.m')

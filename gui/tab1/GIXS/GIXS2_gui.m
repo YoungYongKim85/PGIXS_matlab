@@ -26,7 +26,7 @@ param = initializeParams();
 GX2 = struct();
 % Auto.Met 모드 상수 정의
 AUTO_LINECUT = 0; AUTO_AZIMUTHAL = 2; AUTO_ROI = 3;
-Auto.Met = AUTO_LINECUT; Auto.Nold = 0;
+Auto.Met = AUTO_LINECUT; Auto.Nold = 0; Auto.LastFile = '';
 
 %% ========================================================================
 % 2. Left Panel (Parameters) - 레이아웃 압축 및 명칭 수정
@@ -523,13 +523,17 @@ btnSvX4.Layout.Column = 4;
         end
         
         param.expmode = GUI.hinsitumode.Value;
-        param.FileName = GX2.hFilename.Value;
+        % 목록은 입력한 이름으로 보여주되, 시리즈 이름(param.FileName)은
+        % Export & Load로 실제로 불러올 때만 바꾼다. 목록만 열고 닫아도
+        % 이름이 바뀌어 Auto Refresh가 다른 시리즈 파일을 붙이고 Save가
+        % 다른 폴더에 저장되던 문제.
+        listName = GX2.hFilename.Value;
         % hinsitumode에 맞춰 hTmode 아이템을 먼저 정렬하고 param.Tmode/Amode 캐시
         syncTmodeItems();
         param.Tmode = GUI.hTmode.Value;
         param.Amode = GUI.hAmode.Value;
         
-        [names, files, N] = listPGIXSSeriesFiles(param.Path, param.FileName, '.h5');
+        [names, files, N] = listPGIXSSeriesFiles(param.Path, listName, '.h5');
         if N == 0
             uialert(GUI.main, '해당 파일 이름 패턴을 찾을 수 없습니다!','Warning'); return; 
         end
@@ -547,17 +551,18 @@ btnSvX4.Layout.Column = 4;
         uit.Layout.Row = 1;
         
         btn = uibutton(fg, 'Text', 'Export & Load', 'FontSize', 14, 'FontWeight', 'bold', ...
-            'ButtonPushedFcn', @(h,e)table2workspace(uit,f));
+            'ButtonPushedFcn', @(h,e)table2workspace(uit,f,listName));
         btn.Layout.Row = 2;
     end
 
-    function table2workspace(uit,f)
+    function table2workspace(uit,f,listName)
         tmp = uit.Data(:, 3); exportbool = [tmp{:}]; files = uit.Data(exportbool, 1);
         
         % [핵심 패치] 창을 먼저 파괴하지 않고 숨기기만 하여 콜백 충돌(DestroyedObject) 차단
         f.Visible = 'off'; 
         drawnow;
         
+        param.FileName = listName;
         Loadingdata(files);
         
         % 로딩 완료 후 안전하게 메모리 해제
@@ -677,7 +682,7 @@ btnSvX4.Layout.Column = 4;
         param.data = mean(param.Stack,3,'omitnan');
         [param.cmin, param.cmax] = computePGIXSDisplayLimits(param.data);
         GX2.cMax.Value = double(param.cmax); GX2.cMin.Value = double(param.cmin);
-        param.correctionI = 0; GX2.NFile.Text = num2str(N); Auto.Nold = N; updateImage2();
+        param.correctionI = 0; GX2.NFile.Text = num2str(N); Auto.Nold = N; Auto.LastFile = files{N}; updateImage2();
         failedLoadCount = failureSummary.RetryFailedCount;
         if failedLoadCount > 0
             [message, titleText] = formatPGIXSFrameFailureWarning( ...
@@ -1856,11 +1861,13 @@ btnSvX4.Layout.Column = 4;
         catch ME
             uialert(GUI.main, sprintf('파일 검색 실패: %s', ME.message), '오류', 'Icon', 'error'); return;
         end
-        if isempty(Ntotal) || Ntotal <= Auto.Nold
+        % 마지막으로 불러온 파일 다음 파일만 새 파일 (selectPGIXSNewSeriesFiles).
+        new_indices = selectPGIXSNewSeriesFiles(files, Auto.LastFile, Auto.Nold);
+        if isempty(Ntotal) || isempty(new_indices)
             uialert(GUI.main, sprintf('새 파일 없음 (현재 %d개).', Auto.Nold), 'Auto Refresh', 'Icon', 'info');
             return;
         end
-        Nnew = Ntotal - Auto.Nold; new_indices = (Auto.Nold + 1) : Ntotal;
+        Nnew = numel(new_indices);
 
         % --- 보정 사전 준비 ---
         DoCorrection = (param.correctionI == 1);
@@ -2027,6 +2034,7 @@ btnSvX4.Layout.Column = 4;
 
         close(d);
         Auto.Nold = Auto.Nold + attemptedCount; GX2.NFile.Text = num2str(Auto.Nold);
+        if attemptedCount > 0, Auto.LastFile = files{new_indices(attemptedCount)}; end
         if failedLoadCount > 0
             [message, titleText] = formatPGIXSFrameFailureWarning( ...
                 failedLoadCount, param.RetryFailedFrames, 'load', 'refresh');

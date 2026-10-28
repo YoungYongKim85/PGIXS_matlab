@@ -28,7 +28,7 @@ SForm = {'.mat', '.dat', '.csv'};
 TX2 = struct(); Auto = struct();
 % Auto.Met 모드 상수 정의 (매직 넘버 제거)
 AUTO_CIRCULAR = 0; AUTO_LINECUT = 1; AUTO_AZIMUTHAL = 2;
-param = struct(); param.data = []; param.Expinfo = 0; Auto.Met = AUTO_CIRCULAR; Auto.Nold = 0;
+param = struct(); param.data = []; param.Expinfo = 0; Auto.Met = AUTO_CIRCULAR; Auto.Nold = 0; Auto.LastFile = '';
 
 % ============================ Main Layout Grid ===========================
 mainGrid = uigridlayout(GUI.main, [1 3]);
@@ -346,8 +346,9 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
 
     function OpenNameDef_callback(~,~)
         if ~isfield(param,'FileName'), uialert(GUI.main, 'Please load data first!','Warning'); return; end
-        param.expmode = GUI.hinsitumode.Value; param.FileName = TX2.hFilename.Value;
-        [names, files, N] = listPGIXSSeriesFiles(param.Path, param.FileName, '.h5');
+        % 시리즈 이름(param.FileName)은 Export & Load 때만 바꾼다 (GIXS2와 같음).
+        param.expmode = GUI.hinsitumode.Value; listName = TX2.hFilename.Value;
+        [names, files, N] = listPGIXSSeriesFiles(param.Path, listName, '.h5');
         if N == 0, uialert(GUI.main, 'There is no such a filename!','Warning'); return; end
         
         TrowName = num2cell((1:N)'); tf = true(N,1); T = table(files',names',tf);
@@ -355,16 +356,17 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         fg = uigridlayout(f, [2 1]); fg.RowHeight = {'1x', 40}; fg.Padding = [10 10 10 10];
         
         uit = uitable(fg, 'Data', table2cell(T), 'RowName', TrowName, 'ColumnName', {'FullName', 'FileName', 'Check'}, 'ColumnWidth', {'auto', 'auto', 50}, 'ColumnEditable', [false false true]); uit.Layout.Row = 1;
-        btn = uibutton(fg, 'Text', 'Export & Load', 'FontSize', 14, 'FontWeight', 'bold', 'ButtonPushedFcn', @(h,e)table2workspace(uit,f)); btn.Layout.Row = 2;
+        btn = uibutton(fg, 'Text', 'Export & Load', 'FontSize', 14, 'FontWeight', 'bold', 'ButtonPushedFcn', @(h,e)table2workspace(uit,f,listName)); btn.Layout.Row = 2;
     end
 
-    function table2workspace(uit,f)
+    function table2workspace(uit,f,listName)
         tmp = uit.Data(:, 3); exportbool = [tmp{:}]; files = uit.Data(exportbool, 1);
         
         % [핵심 1] 창을 파괴하지 않고 일단 숨기기만 함 (DestroyedObject 에러 원천 차단)
         f.Visible = 'off'; 
         drawnow; 
         
+        param.FileName = listName;
         Loadingdata(files);
         
         % 모든 로딩 프로세스가 무사히 끝난 뒤 안전하게 메모리에서 삭제
@@ -494,7 +496,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         TX2.cMin.Value = double(param.cmin); 
         TX2.NFile.Text = num2str(N); 
         
-        Auto.Nold = N;
+        Auto.Nold = N; Auto.LastFile = files{N};
 
         updateImage2();
         failedLoadCount = failureSummary.RetryFailedCount;
@@ -1544,9 +1546,11 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
     end
 
     function Autoplot_Callback(~,~)
-        [~, files, Ntotal] = listPGIXSSeriesFiles(param.Path, param.FileName, '.h5');
-        if Ntotal <= Auto.Nold, return; end
-        Nnew = Ntotal - Auto.Nold; new_indices = (Auto.Nold + 1) : Ntotal; DoCorrection = param.correctionI; 
+        [~, files] = listPGIXSSeriesFiles(param.Path, param.FileName, '.h5');
+        % 마지막으로 불러온 파일 다음 파일만 새 파일 (selectPGIXSNewSeriesFiles).
+        new_indices = selectPGIXSNewSeriesFiles(files, Auto.LastFile, Auto.Nold);
+        if isempty(new_indices), return; end
+        Nnew = numel(new_indices); DoCorrection = param.correctionI; 
         
         InvFactor = 1;
         if DoCorrection
@@ -1624,6 +1628,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
             uialert(GUI.main, sprintf('Result update failed: %s', ME.message), 'Error', 'Icon', 'error');
         end
         Auto.Nold = Auto.Nold + attemptedCount; TX2.NFile.Text = num2str(Auto.Nold);
+        if attemptedCount > 0, Auto.LastFile = files{new_indices(attemptedCount)}; end
         if failedLoadCount > 0
             [message, titleText] = formatPGIXSFrameFailureWarning( ...
                 failedLoadCount, param.RetryFailedFrames, 'load', 'refresh');
