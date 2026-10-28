@@ -4,6 +4,18 @@
 
 ---
 
+## v2.5.1 — Smart Auto Run 링 차수 인식 개선 / Smart Auto Run ring orders
+
+- **SDD Calibration의 Smart Auto Run**이 링 차수를 더 정확히 붙입니다.
+  - 전에는 링 후보를 순서대로 1, 2, 3차로 붙여서, 빔스톱 가장자리나 검출기 이음매 같은
+    엉뚱한 피크가 하나 끼면 그 뒤 링이 모두 한 차수씩 밀려 SDD가 1.5~2.5배 틀렸습니다.
+  - 이제 각 차수의 링이 있어야 할 반지름을 예측해 실제로 맞는 후보에만 차수를 붙이고,
+    나머지 피크는 계산에서 뺍니다(후보 표에 "Not in the ring series"로 표시).
+  - 테스트 데이터 표준시료 40개 중 39개가 저장된 SDD와 1% 이내로 맞습니다(전에는 28개).
+    Python 앱(v0.3.12)과 차수가 똑같이 나옵니다.
+
+---
+
 ## ⚠️ v2.5.0 — Python 앱과 결과 맞추기 / Results aligned with the Python app
 
 Python 앱과 결과를 하나하나 비교해서, MATLAB 쪽이 틀렸던 곳을 고쳤습니다.
