@@ -4,6 +4,24 @@
 
 ---
 
+## ⚠️ v2.4.0 — GIXS-series·TrXS-series Auto Refresh 파일 선택 / Auto Refresh file selection
+
+- **Auto Refresh가 엉뚱한 파일을 붙이던 문제를 고쳤습니다.** 새 파일을 "불러온 개수
+  다음 순서"로 골라서, Set/Table에서 중간 파일의 체크를 빼고 불러오면 그 다음 파일을
+  한 번 더 읽었습니다(0003을 빼면 0005가 두 번). 이후 모든 프레임이 X축과 한 칸씩
+  어긋났습니다. 이제 마지막으로 불러온 파일 **다음** 파일만 새 파일로 봅니다
+  (`selectPGIXSNewSeriesFiles`).
+- **Set/Table 목록만 열어도 시리즈 이름이 바뀌던 문제를 고쳤습니다.** 다른 이름으로
+  목록을 열고 닫기만 해도 Auto Refresh가 그 시리즈 파일을 붙이고, Save가 그 이름의
+  폴더에 저장했습니다. 이제 시리즈 이름은 Export & Load로 실제로 불러올 때만 바뀝니다.
+- **영향 범위:** 중간 파일을 빼고 불러온 시리즈에 Auto Refresh를 썼다면 그 결과를 다시
+  확인하는 것을 권합니다.
+
+Auto Refresh now adds only files after the last one loaded, and the series
+name changes only on Export & Load (PGIXS_python v0.3.6 has the same fixes).
+
+---
+
 ## ⚠️ v2.3.0 — Alpha 매핑 1D 컷 결과가 달라집니다 / Alpha-mapping 1D cuts change
 
 - **Map format이 Alpha일 때 1D 컷(Line, Cakecut, Accumulation, Azimuthal)도 갭 경계
