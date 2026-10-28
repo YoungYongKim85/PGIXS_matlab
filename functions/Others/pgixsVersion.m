@@ -1,7 +1,7 @@
 function v = pgixsVersion()
 %PGIXSVERSION  Release version of the PGIXS MATLAB suite.
 %
-%   v = pgixsVersion()   ->  '2.4.0'
+%   v = pgixsVersion()   ->  '2.5.0'
 %
 %   Single source of truth for the version number. Every window in the
 %   suite reads it -- the console, all eight Tab 1 tools, the three Tab 3
@@ -22,5 +22,5 @@ function v = pgixsVersion()
 %   The only version strings left hard-coded are the "_v2.0"-style notes in
 %   a few file header comments. Those are internal and not shown to anyone.
 
-    v = '2.4.0';
+    v = '2.5.0';
 end

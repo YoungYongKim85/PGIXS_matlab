@@ -4,6 +4,21 @@
 
 ---
 
+## ⚠️ v2.5.0 — Python 앱과 결과 맞추기 / Results aligned with the Python app
+
+Python 앱과 결과를 하나하나 비교해서, MATLAB 쪽이 틀렸던 곳을 고쳤습니다.
+
+- **Qy/Qz 매핑의 |Q|에 Qx를 포함합니다.** 지금까지 `sqrt(Qy² + Qz²)`로 계산해서
+  SDD 250 mm에서 q가 0.2–0.9% 낮게 나왔습니다(검출기 보정, Pixel 모드 컷의 q축,
+  azimuthal q 표시에 영향). 긴 SAXS 거리에서는 거의 차이가 없습니다.
+- **TrXS 콘솔 Azimuthal**이 Range(−/+) 값 그대로 `pix+minus ~ pix+plus` 반지름을
+  씁니다(GIXS와 같음). 전에는 범위를 비대칭으로 주면 다른 q의 링을 계산했습니다.
+- **GIXS-series ROI Save Integ.**가 화면처럼 IC/BC로 정규화한 값을 저장합니다.
+- **GIXS-series Azimuthal**을 전체 최댓값으로 나누지 않습니다. 화면과 저장 값이
+  0–1이 아닌 원래 크기로 나옵니다(Python과 같음).
+
+---
+
 ## ⚠️ v2.4.0 — GIXS-series·TrXS-series Auto Refresh 파일 선택 / Auto Refresh file selection
 
 - **Auto Refresh가 엉뚱한 파일을 붙이던 문제를 고쳤습니다.** 새 파일을 "불러온 개수
