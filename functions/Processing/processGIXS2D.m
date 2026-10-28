@@ -27,10 +27,10 @@ function param = processGIXS2D(param, opts)
                 param = calculateGIXSQUncertainty(param, 'Qxy/Qz', samplePath, k0);
             end
         case 'Qy/Qz'
-            [param.Qy, ~, param.Qz, ~, param.tth2d, param.af2d] = ...
+            % |Q| includes Qx: sqrt(Qy^2 + Qz^2) read 0.2-0.9% low at SDD 250 mm.
+            [param.Qy, ~, param.Qz, param.Q, param.tth2d, param.af2d] = ...
                 Qmaping_gi(param.dataSize(2), param.dataSize(1), ...
                 param.bpos, param.pixel, param.SDD, k0, param.ai);
-            param.Q = sqrt(param.Qy .^ 2 + param.Qz .^ 2);
             if qUncertain == 1
                 param = calculateGIXSQUncertainty(param, 'Qy/Qz', samplePath, k0);
             end
@@ -75,14 +75,12 @@ function param = calculateGIXSQUncertainty(param, method, samplePath, k0)
             param.Qz_std = abs(param.Qzmax - param.Qzmin) ./ 4;
             param.Q_std = abs(qMax - qMin) ./ 4;
         case 'Qy/Qz'
-            [param.Qymin, ~, param.Qzmin, ~, ~, ~] = Qmaping_gi( ...
+            [param.Qymin, ~, param.Qzmin, qMin, ~, ~] = Qmaping_gi( ...
                 param.dataSize(2), param.dataSize(1), param.bpos, ...
                 param.pixel, sddMin, k0, param.ai);
-            [param.Qymax, ~, param.Qzmax, ~, ~, ~] = Qmaping_gi( ...
+            [param.Qymax, ~, param.Qzmax, qMax, ~, ~] = Qmaping_gi( ...
                 param.dataSize(2), param.dataSize(1), param.bpos, ...
                 param.pixel, sddMax, k0, param.ai);
-            qMin = sqrt(param.Qymin .^ 2 + param.Qzmin .^ 2);
-            qMax = sqrt(param.Qymax .^ 2 + param.Qzmax .^ 2);
             param.Qy_std = abs(param.Qymax - param.Qymin) ./ 4;
             param.Qz_std = abs(param.Qzmax - param.Qzmin) ./ 4;
             param.Q_std = abs(qMax - qMin) ./ 4;

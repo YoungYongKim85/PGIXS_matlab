@@ -969,7 +969,6 @@ param = initializeParams();
         if param.correctionI == 0, uialert(GUI.main, 'Please doing the QMap first!!','Warning'); return; end
         try
             pix_pos = TX.azipospix.Value; pix_pos_minus = TX.azipospixm.Value; pix_pos_plus = TX.azipospixp.Value;
-            pos_pix = pix_pos + round(param.bpos(1)); NumSum = (pos_pix + pix_pos_plus) - (pos_pix + pix_pos_minus);
             theta = (0:0.2:360)' + 180;
             
             PlotAzi = param.data;
@@ -982,7 +981,9 @@ param = initializeParams();
             d = uiprogressdlg(GUI.main, 'Title', 'Calculating', 'Message', 'Azimuthal Integrating...', 'Indeterminate', 'on');
             
             % 1. 연산용 그리드 생성
-            radii = (pix_pos - fix(NumSum/2)) : (pix_pos - fix(NumSum/2) + fix(NumSum) - 1); 
+            % pix + minus ~ pix + plus, as GIXS_gui. Re-centring on pix ignored
+            % an asymmetric Range(-/+) and sampled a different ring.
+            radii = (pix_pos + pix_pos_minus) : (pix_pos + pix_pos_plus);
             [ThetaGrid, RGrid] = meshgrid(theta, radii);
             X_idx = round(RGrid .* cosd(ThetaGrid) + param.bpos(1)); 
             Y_idx = round(RGrid .* sind(ThetaGrid) + param.bpos(2));
