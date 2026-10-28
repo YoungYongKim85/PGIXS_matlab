@@ -927,6 +927,40 @@ function testSDDCalibrationModules()
         'AgBH short-SDD analysis should skip the central false peak.');
     assert(all(shortReport.Candidates.Order(shortReport.Candidates.Accepted) >= 2), ...
         'AgBH short-SDD accepted candidates should not assume visible 1st order.');
+
+    % A stray peak between real rings must be left out of the series, not
+    % shift the order of every ring after it.
+    rr = (0:599).' + 0.5;
+    lambda = 12.398419843320026 / 9.5;
+    ringR = 300 * tan(2 * asin((1:5) * 0.1052 * lambda / (4 * pi))) / 0.075;
+    strayR = (ringR(2) + ringR(3)) / 2 + 7;
+    strayProfile = 5 + 5000 * exp(-((rr - 20).^2) / (2 * 5^2));
+    for radius = [ringR, strayR]
+        strayProfile = strayProfile + 500 * exp(-((rr - radius).^2) / (2 * 2^2));
+    end
+    strayReport = analyzePGIXSSDDCandidates(rr, strayProfile, ones(size(rr)), ...
+        'Silver behenate', 9.5, 0.075);
+    strayRows = strayReport.Candidates;
+    [~, strayRow] = min(abs(strayRows.FittedRadius - strayR));
+    assert(isnan(strayRows.Order(strayRow)) && ~strayRows.Accepted(strayRow), ...
+        'A stray peak between AgBH rings should stay out of the ring series.');
+    assert(isequal(sort(strayRows.Order(strayRows.Accepted)).', 1:5), ...
+        'Rings after a stray peak should keep their own orders.');
+    assert(abs(strayReport.FinalSDD / 300 - 1) < 0.005, ...
+        'SDD with a stray peak among the rings mismatch.');
+
+    % A broad bump at the beam stop edge and one sharp ring both read as a
+    % lone order 1; the better-fitting ring must win the tie.
+    rr = (0:899).' + 0.5;
+    edgeProfile = 5 + 400 * exp(-((rr - 70).^2) / (2 * 8^2)) + ...
+        500 * exp(-((rr - 400).^2) / (2 * 4^2)) + max(2 * (110 - rr), 0);
+    edgeReport = analyzePGIXSSDDCandidates(rr, edgeProfile, ones(size(rr)), ...
+        'Mesoporous Silica', 11.09, 0.0886);
+    edgeRows = edgeReport.Candidates;
+    assert(edgeRows.RSquare(1) >= 0.85, 'The beam-stop-edge bump should be a valid competitor.');
+    assert(nnz(edgeRows.Accepted) == 1 && abs(edgeRows.FittedRadius(edgeRows.Accepted) - 400) < 1 && ...
+        edgeRows.Order(edgeRows.Accepted) == 1, ...
+        'A sharp lone ring should outrank a broad beam-stop edge.');
 end
 
 function testNormalizationValue()
