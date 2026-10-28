@@ -1598,14 +1598,18 @@ function testProcessing()
 
     opts.QMapMethod = 'Qxy/Qz';
     opts.IncAngle = 0.12;
+    opts.SDD = 50;  % short enough for Qx to matter in the |Q| check below
     opts.SamplePath = 1;
     opts.QUncertainty = 0;
     gi = processGIXS2D(p, opts);
     assert(isfield(gi, 'Qr') && isfield(gi, 'AlphaMap'), 'GIXS Qxy processing output missing fields.');
+    qTotal = gi.Q;
 
     opts.QMapMethod = 'Qy/Qz';
     gi = processGIXS2D(p, opts);
     assert(isfield(gi, 'Qy') && isfield(gi, 'Itrans'), 'GIXS Qy processing output missing fields.');
+    % |Q| is the same physical magnitude in either mapping (it includes Qx).
+    assert(max(abs(gi.Q(:) - qTotal(:))) < 1e-6, 'GIXS Qy/Qz |Q| must include Qx.');
 end
 
 function testQMappingAndCorrections()

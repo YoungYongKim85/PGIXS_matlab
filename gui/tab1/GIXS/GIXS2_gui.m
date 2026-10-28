@@ -1057,7 +1057,6 @@ btnSvX4.Layout.Column = 4;
                 param.dataAzistackN(:,ii) = param.dataAzistackN(:,ii) ./ norm_val;
             end
         end
-        max_val = max(param.dataAzistackN(:), [], 'omitnan'); if ~isempty(max_val) && ~isnan(max_val) && max_val > 0, param.dataAzistackN = param.dataAzistackN ./ max_val; end
         GX2.aziMin.Value = double(min(param.dataAzistack(:,1))); GX2.aziMax.Value = double(max(param.dataAzistack(:,1))); updateAziplot_Callback();
     end
 
@@ -1278,7 +1277,13 @@ btnSvX4.Layout.Column = 4;
         switch Auto.Met
             case AUTO_ROI % ROI
                 if ~isfield(param, 'SumIROI') || isempty(param.SumIROI), uialert(GUI.main, 'No ROI data!', 'Warning'); return; end
-                Y_save = double(param.SumIROI); suffix = '_IntROI';
+                Y_save = double(param.SumIROI); suffix = '_IntROI'; Normalway = GUI.hNormalROI.Value;
+                % Same IC/BC normalization as PlotROI_Callback, so the file matches the plot.
+                if ~strcmp(Normalway, 'None') && isfield(param, 'loginfo')
+                    for ii = 1:size(Y_save, 1)
+                        Y_save(ii, :) = Y_save(ii, :) ./ getPGIXSNormalizationValue(param.loginfo, Normalway, ii);
+                    end
+                end
             case 2 % Azi
                 if ~isfield(param, 'dataAzistackN') || isempty(param.dataAzistackN), uialert(GUI.main, 'No Azi data!', 'Warning'); return; end
                 azimin = double(GX2.aziMin.Value); azimax = double(GX2.aziMax.Value); Ang = param.dataAzistack(:,1);
