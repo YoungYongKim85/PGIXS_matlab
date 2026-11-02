@@ -65,7 +65,6 @@ function run_pgixs_core_tests()
     testColumnReorder();
     testRowReorder();
     testNormalization();
-    testQBin1D();
     testRadiusBin1D();
     testSectorAverageDiagnostics();
     testAzimuthal1D();
@@ -1116,23 +1115,6 @@ function testNormalization()
 
     [~, report] = processPGIXSNormalization(data, [], [], [], 'IC', 1);
     assert(~report.Success, 'Missing IC should fail.');
-end
-
-function testQBin1D()
-    D = single([1 2 100; 4 NaN 6]);
-    geom_lin = int32((1:numel(D))');
-    bin_idx_geom = [1; 2; 1; 2; 1; 2];
-
-    [zr, zr_std] = processPGIXSQBin1D(D, geom_lin, bin_idx_geom, 3, true, true);
-    assert(isa(zr, 'single'), 'q-bin output should be single precision.');
-    assert(abs(double(zr(1)) - 2) < 1e-6, 'Median q-bin result mismatch.');
-    assert(abs(double(zr(2)) - 5) < 1e-6, 'Median q-bin result mismatch.');
-    assert(isnan(zr(3)), 'Empty q-bin should stay NaN.');
-    assert(abs(double(zr_std(1)) - 1.4826) < 1e-4, 'Robust std result mismatch.');
-
-    zr_mean = processPGIXSQBin1D(D, geom_lin, bin_idx_geom, 3, false, false);
-    assert(numel(zr_mean) == 3, 'Huber q-bin output size mismatch.');
-    assert(isnan(zr_mean(3)), 'Empty Huber q-bin should stay NaN.');
 end
 
 function testRadiusBin1D()
@@ -2471,7 +2453,6 @@ function testCheckcode(repoRoot)
         fullfile(repoRoot, 'functions', 'Processing', 'processGIXSAzimuthalStack.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processGIXSLinecutStack.m')
         fullfile(repoRoot, 'functions', 'Processing', 'alignPGIXSLinecutToReference.m')
-        fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSQBin1D.m')
         fullfile(repoRoot, 'functions', 'Processing', 'buildPGIXSRadiusBinMap.m')
         fullfile(repoRoot, 'functions', 'Processing', 'processPGIXSRadiusBin1D.m')
         fullfile(repoRoot, 'functions', 'Processing', 'diagnosePGIXSSectorAverage.m')

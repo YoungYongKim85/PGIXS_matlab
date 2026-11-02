@@ -45,16 +45,7 @@ GUI 본체 외에 아래 외부 `.m` 함수들이 경로에 있어야 정상 동
 - **NaN은 평균에서 단순 제외**(`omitnan` / 유효 픽셀만 누적)되며, `fillmissing`이나 보간으로 메우지 않는다.
 - **갭을 넘는 평활 금지.** Savitzky–Golay 등 평활이 갭 너머 값을 인접 bin에 섞지 않는다(갭 경계 오염 = 왜곡 제거).
 - **측정된 0·음수 강도는 보존**한다. 갭은 이미 NaN으로 처리되므로, `I<=0`을 갭으로 간주해 버리지 않는다(고각 강도가 위로 편향되는 것을 방지).
-- 원형 평균은 q-bin별 **Huber 로버스트 평균**으로 이상치 영향을 줄인다.
-
-### 동작 토글 (기본값 보수적)
-
-| 토글 | 위치 | 기본 | 의미 |
-|---|---|---|---|
-| `DO_SPIKE_REJECT` | `process1dSlice_qbin` | `false` | hot pixel/스파이크만 NaN 처리(보간 없음). Bragg/형상 피크 보존 위해 기본 off |
-| `DO_SMOOTH` | `process1dSlice_qbin` | `false` | 켜도 NaN 경계로 분할한 구간 내부에서만 SG 평활 |
-| `MIN_VALID_FRAC` | `azi_postprocess` | `0.0` | 방위각: 최대 대비 이 비율 미만 방향 제거(예전 40% 컷 원하면 `0.4`) |
-| `EXCLUDE_NONPOSITIVE` | 각 평균/컷 함수 | `false` | `true`면 0·음수도 갭으로 제외(예전 동작 복원) |
+- 원형 평균은 q-bin별 **산술평균**이다(`processPGIXSRadiusBin1D`, Median 체크 시 중앙값).
 
 ## 5. 표준 워크플로우
 

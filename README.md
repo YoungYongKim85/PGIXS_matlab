@@ -81,11 +81,11 @@ Covers the reduction and calibration functions in `functions/`.
 
 The [Python version](https://github.com/YoungYongKim85/PGIXS_python) is an
 independent implementation of the same Tab 1 workflow. The two agree on peak
-positions to better than 5e-4 A^-1 on real data, but they are **not numerically
-identical**: they use different estimators and sampling geometry in a few
-reductions (arithmetic mean vs. Huber M-estimator for q-binned averages, a
+positions to within 6.3e-4 A^-1 on real data, but they are **not numerically
+identical**: they use different sampling geometry in a few reductions (a
 single interpolated ray vs. an angular wedge for line cuts, a polar sampling
-grid vs. a pixel histogram for azimuthal profiles).
+grid vs. a pixel histogram for azimuthal profiles). Both take the arithmetic
+mean within a q bin.
 
 Those differences are measured and documented, and a cross-check harness that
 reduces the same frame with both versions and reports where they diverge lives

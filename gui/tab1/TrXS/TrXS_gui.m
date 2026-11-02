@@ -699,17 +699,10 @@ param = initializeParams();
         %  2) Detector gap은 NaN/0 픽셀을 binning에서 단순히 제외하여 처리.
         %     interp2 기반 보간이 없으므로 gap 경계 오염(픽셀 NaN 전파)이 0임.
         %  3) bin 대표값은 processPGIXSRadiusBin1D의 단순 산술평균
-        %     (Median 체크 시 중앙값). 이 주석은 예전에 Huber M-estimator
-        %     (c = 1.345)를 쓴다고 적혀 있었지만 실제 코드는 그런 적이 없다.
-        %     Huber 구현은 processPGIXSQBin1D.m에 있으나 테스트에서만
-        %     호출되고, 실제 처리 경로(CakeCut/Circular/TrXS2)는 전부
-        %     processPGIXSRadiusBin1D를 쓴다.
-        %     참고: PGIXS_python은 이 자리에서 Huber를 쓴다. 대부분의 q
-        %     영역에서는 두 값이 0.5% 안쪽으로 일치하지만, 빔스탑 가장자리
-        %     처럼 한 bin 안에 가려진 픽셀과 안 가려진 픽셀이 섞여 분포가
-        %     양봉이 되는 구간에서는 크게 갈린다(실측 비교에서 최대 220배).
-        %     그 구간은 어느 추정량으로도 신뢰하기 어렵고, 빔스탑을
-        %     마스크로 제외하는 것이 옳다.
+        %     (Median 체크 시 중앙값). CakeCut/Circular/TrXS2 모두 같다.
+        %     강건 평균(Huber)은 쓰지 않는다: 배향 시료의 Bragg 피크처럼
+        %     링의 일부에만 있는 신호를 이상치로 보고 지우기 때문이다.
+        %     PGIXS_python도 v0.3.14부터 같은 산술평균을 쓴다.
         %  4) Vectorization: accumarray 기반. interp2-polar 대비 대략 3~5배 빠름.
         %     단일 numel(I2d) 사이즈 인덱스 벡터 한 개만 사용 → 메모리도 절감.
         %

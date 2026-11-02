@@ -23,7 +23,7 @@ GI 1D 환원의 실제 계산은 아래 외부 함수들에 위임된다.
 
 | 함수 | 역할 |
 |---|---|
-| `CakeCut_gi` | 섹터(케이크) 컷 — q-bin Huber 평균 |
+| `CakeCut_gi` | 섹터(케이크) 컷 — q-bin 산술평균 |
 | `CakeCut_gi_fast`, `CakeCut_gi_prep` | 케이크 컷 가속(사전계산 + 빠른 실행) |
 | `CakeCut_gi_buildmaps` | Q-map/각도-map 생성(케이크 컷 내부 사용) |
 | `Anglecut1d_gi` | GI 라인 컷(보간 기반, NaN 드롭) |
@@ -45,15 +45,7 @@ TrXS2와 동일한 원칙을 따른다.
 - **NaN은 평균에서 제외**되며 보간으로 메우지 않는다.
 - **갭을 넘는 평활 금지**(갭 경계 오염 제거).
 - **측정된 0·음수 강도 보존**(`I<=0`을 갭으로 간주하지 않음 → 고각 편향 방지).
-- 케이크 컷은 q-bin별 **Huber 로버스트 평균**을 사용한다.
-
-### 동작 토글 (외부 cut 함수 내부, 기본값 보수적)
-
-| 토글 | 위치 | 기본 | 의미 |
-|---|---|---|---|
-| `DO_SPIKE_REJECT` | `CakeCut_gi(_fast)`의 `qbin_huber` | `false` | 스파이크만 NaN(보간 없음) |
-| `DO_SMOOTH` | 동상 | `false` | 켜도 NaN 경계 분할 구간 내부에서만 SG 평활 |
-| `EXCLUDE_NONPOSITIVE` | 동상 | `false` | `true`면 0·음수도 제외(예전 동작) |
+- 케이크 컷은 q-bin별 **산술평균**을 사용한다(`processPGIXSRadiusBin1D`).
 
 > GIXS2 본체의 방위각(`Azilinecut2`)·ROI 적분은 serial 루프 + `omitnan`이라 갭을 자연히 제외하며, 별도 보간/스파이크 제거가 없다.
 
