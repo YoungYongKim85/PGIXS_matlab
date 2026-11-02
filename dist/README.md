@@ -22,7 +22,7 @@ left out.
 ## 1. Build the package
 
 ```matlab
-cd('D:/Claude_Code/PGIXS_matlab/dist')
+cd('dist')   % from the PGIXS_matlab checkout
 build_dist_package()
 ```
 

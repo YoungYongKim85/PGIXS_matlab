@@ -5,7 +5,7 @@
 - Date: 2026-07-08
 - MATLAB release: 2024a (`24.1.0.3050227 (R2024a) Update 8`)
 - Platform: PCWIN64 (`filesep=\`, `pathsep=;`)
-- PGIXS workspace: `C:\Users\owner\Documents\PGIXS_matlab업그레이드`
+- PGIXS workspace: local PGIXS_matlab checkout
 - Tester:
 - Dataset or sample files:
   - `manual_qa_samples/pgixs_manual_qa_gixs_2dinfo.mat`
