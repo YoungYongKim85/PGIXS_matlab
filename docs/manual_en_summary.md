@@ -104,7 +104,8 @@ intended behaviour rather than a fault.
 
 **Mean vs. Median.** In this implementation *Mean* is a plain arithmetic mean
 (`processPGIXSRadiusBin1D`); *Median* is the median. The Python implementation
-uses a Huber M-estimator in the same place — see below.
+uses the same arithmetic mean since its v0.3.14 (it used a Huber M-estimator
+before).
 
 **Multishot averaging.** Frames are summed and divided by the file count, so a
 pixel that is NaN in any one shot is NaN in the average. The Python version
@@ -145,7 +146,6 @@ right, so they are the checks that matter.
 
 | Reduction | MATLAB | Python |
 | --- | --- | --- |
-| q-bin estimator | arithmetic mean | Huber M-estimator (c = 1.345) |
 | GIXS 1D line cut | one bilinearly interpolated ray | ±1° wedge averaged into q bins |
 | GIXS azimuthal | polar grid at 0.2°, nearest pixel | real annulus pixels binned at 1° |
 | Multishot averaging | NaN in any shot ⇒ NaN | valid shots only |
@@ -159,13 +159,13 @@ Consequences that are expected rather than faults:
 - **The horizontal cut scatters more than the vertical one.** The wedge
   half-width grows with radius (±4.7 px at q = 0.5, ±14 px at q = 1.5) and, in
   grazing incidence, the horizontal direction crosses the fast-varying
-  Yoneda/horizon region. Median relative difference 16.9% against 5.7% for the
-  vertical cut — but with a signed median near zero, i.e. scatter, not bias.
+  Yoneda/horizon region. Median relative difference 17.7% against 6.0% for the
+  vertical cut. Its signed median (+2.9%) is the largest of the set, because the
+  wedge takes in the brighter pixels just above the horizon.
   Where counts are low this is the Poisson noise on MATLAB's single ray; the
   Python estimate is the less noisy of the two.
-- **A few bins at the beamstop edge diverge by up to 220×.** Masked and
-  unmasked pixels mix there into a bimodal distribution. Neither estimator is
-  trustworthy in those bins; mask the beamstop.
+- **The TrXS circular average agrees closely** (median 0.07%, at most 0.2%):
+  both take the arithmetic mean of the same pixels in the same bins.
 - **q axes differ by ~1×10⁻⁵ relative**, because the two codebases use slightly
   different values of *hc* (12.3985167 vs. 12.3984198 keV·Å). 7.8 ppm, of no
   practical consequence.

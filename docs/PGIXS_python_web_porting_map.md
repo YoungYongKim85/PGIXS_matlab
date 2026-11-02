@@ -42,7 +42,7 @@ pgixs/
 | `readPGIXSH5Metadata`, `readPGIXSH5FrameMetadataRow` | `pgixs.io.h5_metadata` | Keep IC/BC/temperature/timestamp conventions stable. |
 | `savePGIXSDataFile`, `savePGIXSStructFile`, `writePGIXSTableFile` | `pgixs.io.result_writer`, `pgixs.reporting.tables` | Preserve sidecar failure-frame CSV behavior. |
 | `buildPGIXS2DInfo`, `savePGIXS2DInfoFile`, `loadPGIXS2DInfo` | `pgixs.io.two_d_info` | This is the key Tab1-to-Tab3 bridge. |
-| `processPGIXSQBin1D`, `processPGIXSAzimuthal1D`, stack processors | `pgixs.processing` | Best first target for Python desktop acceleration. |
+| `processPGIXSAzimuthal1D`, stack processors | `pgixs.processing` | Best first target for Python desktop acceleration. |
 | `computePGIXSDetectorCorrectionFactor`, `SolidAngle`, `Polarization`, `Eff_correc*` | `pgixs.processing.corrections` | Physics formulas should get dedicated numeric tests before porting. |
 | `qvalhkl_gi`, `qvalhkl_tr`, `lp2qp`, `ReflCond*` | `pgixs.analysis.xtal` | Core indexing engine; port after MATLAB behavior is frozen. |
 | Auto-index helpers | `pgixs.analysis.xtal.auto_index` | Already relatively modular and testable. |
