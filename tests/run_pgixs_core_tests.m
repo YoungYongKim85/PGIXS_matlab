@@ -1186,6 +1186,12 @@ function testAzimuthal1D()
     assert(abs(double(aziMedian(1)) - 4) < 1e-6, 'Azimuthal median result mismatch.');
     assert(abs(double(aziMedian(2)) - 5) < 1e-6, 'Azimuthal median result mismatch.');
 
+    % A drawn ROI mask (TrXS2 get_modern_mask) marks its region NaN, not 0.
+    roiMask = single(ones(size(D)));
+    roiMask(2, 1) = NaN;
+    aziRoi = processPGIXSAzimuthal1D(D, indMap, roiMask, false);
+    assert(abs(double(aziRoi(1)) - 4) < 1e-6, 'A NaN (drawn ROI) mask pixel must be left out of the azimuthal mean.');
+
     Dgap = single(10 * ones(4, 4));
     Dgap(2, 2) = NaN;
     indMapGap = single([

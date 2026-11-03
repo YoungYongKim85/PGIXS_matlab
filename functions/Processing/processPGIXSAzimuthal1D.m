@@ -3,7 +3,8 @@ function azi = processPGIXSAzimuthal1D(D, indMap, mask, useMedian)
 %
 % D         2D image.
 % indMap    radii-by-theta linear-index map. NaN entries are ignored.
-% mask      detector/user mask. Pixels with mask <= 0 become NaN.
+% mask      detector/user mask. Pixels with mask <= 0 or NaN (a drawn
+%           ROI mask marks its region NaN) become NaN.
 % useMedian true: median over radii, false: mean over radii.
 
     if nargin < 4
@@ -12,7 +13,7 @@ function azi = processPGIXSAzimuthal1D(D, indMap, mask, useMedian)
 
     D = single(D);
     if nargin >= 3 && ~isempty(mask)
-        D(mask <= 0) = NaN;
+        D(~(mask > 0)) = NaN;   % NaN <= 0 is false, so test the keep side.
     end
 
     vals = nan(size(indMap), 'single');
