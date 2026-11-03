@@ -305,7 +305,8 @@ param = initializeParams();
 
     function [BW, userSelected] = selectROIMask(data2d, p)
         % ROI 마스크 선택 헬퍼 (CircularAve / DrawPlot 공용)
-        % 반환: BW (NaN mask), userSelected (true/false)
+        % 반환: BW (그린 영역 = NaN, 나머지 = 1), userSelected (true/false)
+        % 그린 영역은 평균에서 제외된다: 호출부는 isnan(BW)인 픽셀을 버린다.
         BW = []; userSelected = false;
         
         selection = uiconfirm(GUI.main, 'Do you need a mask?', ...
@@ -721,10 +722,16 @@ param = initializeParams();
         I2d = param.data;
 
         % 360° 전체 영역인 경우에만 ROI 마스크 옵션 제공 (기존 동작 유지)
+        % 그린 영역은 sector처럼 기하에서 뺀다: 그 픽셀은 분모(coverage)에서도
+        % 빠지므로, 각 bin은 나머지 영역만의 평균이 되고 마스크 때문에
+        % "Min cov"에 걸려 bin이 지워지지 않는다. (예전 BW <= 0 비교는 NaN/1
+        % 어느 쪽에도 참이 아니어서 마스크가 전혀 반영되지 않았다.)
+        userMask = false(size(I2d));
         if Angmin == 0 && Angmax == 360
             [BW, userSelected] = selectROIMask(param.data, param);
             if userSelected && ~isempty(BW)
-                I2d = param.data; I2d(BW <= 0) = NaN;   % ROI 밖 = NaN(0으로 만들지 않음)
+                userMask = isnan(BW);
+                I2d(userMask) = NaN;
             end
         end
 
@@ -746,7 +753,7 @@ param = initializeParams();
             % dataCounts == geom_counts가 되어 coverage가 항상 1이고, 아래
             % "Min cov" 임계값이 한 번도 동작하지 않았다.
             % diagnosePGIXSSectorAverage.m은 이미 이렇게 분리해서 계산한다.
-            invalid_geom = ~isfinite(Q) | (Q <= 0);
+            invalid_geom = ~isfinite(Q) | (Q <= 0) | userMask;
 
             % gap 경계에 바로 붙은 실측 픽셀(하드웨어 edge bias 가능)은 3픽셀
             % 버퍼로 제외하되, 기하가 아니라 **데이터** 쪽에서 무효화한다.
@@ -968,7 +975,7 @@ param = initializeParams();
             
             [BW, userSelected] = selectROIMask(param.data, param);
             if userSelected && ~isempty(BW)
-                PlotAzi(BW <= 0) = NaN;   % ROI 밖 = NaN
+                PlotAzi(isnan(BW)) = NaN;   % 그린 영역 제외 (omitnan 평균에서 빠짐)
             end
             
             d = uiprogressdlg(GUI.main, 'Title', 'Calculating', 'Message', 'Azimuthal Integrating...', 'Indeterminate', 'on');
