@@ -818,6 +818,7 @@ btnSvX4.Layout.Column = 4;
         GX2.cXlim1.Value = double(min(param.HD)); GX2.cXlim2.Value = double(max(param.HD)); GX2.cYlim1.Value = double(min(param.VD)); GX2.cYlim2.Value = double(max(param.VD));
         param.Expinfo = 1; 
         GUI.btnInfo.BackgroundColor = [0.75 0.95 0.75]; 
+        CalIncidencePixel2_Callback();  % ai deg may predate the SDD (file angle on load): pix catches up
         updateImage2();
         figure(GUI.main); drawnow;
     end

@@ -512,6 +512,8 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
             GX.cYlim1.Value = double(min(param.VD)); GX.cYlim2.Value = double(max(param.VD));
             
             param.Expinfo = 1; renderImage();
+            % ai deg may predate the SDD (file angle on load): pix catches up
+            GX.hAiPix.Value = double(abs(param.SDD * tand(2 * double(GX.hAiDeg.Value)) / currentPixelSize()));
             figure(GUI.main); drawnow;
         else
             uialert(GUI.main, loadReport.Message, 'Calibration Warning', 'Icon', 'warning');
