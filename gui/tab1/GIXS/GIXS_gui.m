@@ -428,6 +428,7 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         GX.cMax.Value = double(param.cmax); GX.cMin.Value = double(param.cmin);
         GX.btnQcal.BackgroundColor = [0.96 0.96 0.96];
         btnGridR.BackgroundColor = [0.96 0.96 0.96];
+        param.gridRemoved = false;
         btnGridR.FontColor = [0.15 0.15 0.15];
 
         % 새 데이터 로드 시 Load Info로 채워졌던 필드의 강조색을 default(흰색)로 복귀
@@ -532,6 +533,12 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
             else
                 btnGridR.BackgroundColor = [0.75 0.95 0.75];
                 btnGridR.FontColor = [0.15 0.15 0.15];
+                param.gridRemoved = true;
+                % 배경도 같은 보정을 받는다: 데이터의 grid 픽셀만 스케일이 바뀌면
+                % 배경을 뺄 때 그 픽셀들만 어긋난다.
+                if isfield(param, 'bkg') && ~isempty(param.bkg)
+                    param.bkg = applyPGIXSGridRemoveToBackground(param.bkg, GX.hDetector.Value);
+                end
             end
         catch ME
             param.data(Nanpos) = nan;
@@ -653,6 +660,10 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
                 uialert(GUI.main, ME.message, 'Background Error');
                 return;
             end
+        end
+        % Grid Remove 뒤에 불러온 배경은 데이터와 같은 상태로 맞춘다.
+        if isfield(param, 'gridRemoved') && param.gridRemoved
+            param.bkg = applyPGIXSGridRemoveToBackground(param.bkg, GX.hDetector.Value);
         end
         close(d);
         figure(GUI.main); drawnow;

@@ -481,6 +481,7 @@ param = initializeParams();
         btnQmap.BackgroundColor = [0.96 0.96 0.96]; % 기본 회색
         btnQmap.FontColor = [0.15 0.15 0.15];       % 기본 텍스트 색상(검정)
         btnGrid.BackgroundColor = [0.96 0.96 0.96];
+        param.gridRemoved = false;
         btnGrid.FontColor = [0.15 0.15 0.15];
         
         GUI.hMapping.Value = 'Pixel'; 
@@ -573,6 +574,10 @@ param = initializeParams();
                  return;
              end
         end
+        % Grid Remove 뒤에 불러온 배경은 데이터와 같은 상태로 맞춘다.
+        if isfield(param, 'gridRemoved') && param.gridRemoved
+            param.bkg = applyPGIXSGridRemoveToBackground(param.bkg, GUI.hDetector.Value);
+        end
         close(d);
         figure(GUI.main); drawnow;  % 최종 포커스 복원
         uialert(GUI.main, 'Background loaded successfully.', 'Success');
@@ -636,6 +641,12 @@ param = initializeParams();
             else
                 btnGrid.BackgroundColor = [0.3 0.6 0.4];
                 btnGrid.FontColor = [1 1 1];
+                param.gridRemoved = true;
+                % 배경도 같은 보정을 받는다: 데이터의 grid 픽셀만 스케일이 바뀌면
+                % 배경을 뺄 때 그 픽셀들만 어긋난다.
+                if isfield(param, 'bkg') && ~isempty(param.bkg)
+                    param.bkg = applyPGIXSGridRemoveToBackground(param.bkg, GUI.hDetector.Value);
+                end
             end
         catch ME
             param.data(Nanpos) = nan;

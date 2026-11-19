@@ -1733,6 +1733,17 @@ function testGridremover()
     assert(~nonEigerReport.Applied, 'Gridremover should skip non-Eiger4M detector names.');
     assert(isequal(nonEigerOut, data), 'Non-Eiger4M Gridremover output should remain unchanged.');
 
+    % A background gets the same correction, with its gaps left NaN.
+    bkg = data;
+    bkg(1, 1) = NaN;
+    [bkgOut, bkgApplied] = applyPGIXSGridRemoveToBackground(bkg, 'Eiger4M');
+    assert(bkgApplied, 'Background grid removal should apply on Eiger-sized data.');
+    assert(isnan(bkgOut(1, 1)), 'Background gaps should stay NaN after grid removal.');
+    assert(abs(double(mean(bkgOut(rowGroups{1}, 2:end), 'all', 'omitnan')) - 1) < 1e-6, ...
+        'Background grid lines should be restored like the data.');
+    [bkgSame, bkgSkipped] = applyPGIXSGridRemoveToBackground(bkg, 'MarCCD');
+    assert(~bkgSkipped && isequaln(bkgSame, bkg), 'A non-Eiger4M background should come back unchanged.');
+
     smallData = ones(1042, 1042, 'single');
     [smallOut, smallReport] = Gridremover(smallData, 'Eiger4M');
     assert(~smallReport.Applied, 'Gridremover should skip unsupported detector sizes.');

@@ -340,6 +340,7 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
 
         GUI.btnQcal.BackgroundColor = [0.96 0.96 0.96]; 
         btnGridR.BackgroundColor = [0.96 0.96 0.96];
+        param.gridRemoved = false;
         btnGridR.FontColor = [0.15 0.15 0.15];
         updateImage2; param.correctionI = 0; 
     end
@@ -639,6 +640,11 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         % 바꾸지 않는다: 바꾸면 카운트가 낮은 배경의 평균이 높게 치우친다
         % (평균 0.3 카운트가 1.16으로 읽힘).
         param.bkg = runSum ./ loadedCount;
+        % Grid Remove 뒤에 불러온 배경은 데이터와 같은 상태로 맞춘다.
+        param.bkgGridRemoved = false;
+        if isfield(param, 'gridRemoved') && param.gridRemoved
+            [param.bkg, param.bkgGridRemoved] = applyPGIXSGridRemoveToBackground(param.bkg, GUI.hDetector.Value);
+        end
         if metadataCount > 0
             cntAvg = cntSum ./ metadataCount;
         else
@@ -709,6 +715,12 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
         else
             btnGridR.BackgroundColor = [0.75 0.95 0.75];
             btnGridR.FontColor = [0.15 0.15 0.15];
+        end
+        param.gridRemoved = true;
+        % 배경도 같은 보정을 받는다(불러온 배경마다 한 번만): 데이터의 grid
+        % 픽셀만 스케일이 바뀌면 배경을 뺄 때 그 픽셀들만 어긋난다.
+        if isfield(param, 'bkg') && ~isempty(param.bkg) && ~(isfield(param, 'bkgGridRemoved') && param.bkgGridRemoved)
+            [param.bkg, param.bkgGridRemoved] = applyPGIXSGridRemoveToBackground(param.bkg, GUI.hDetector.Value);
         end
     end
 
