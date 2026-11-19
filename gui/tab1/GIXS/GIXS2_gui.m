@@ -607,6 +607,11 @@ btnSvX4.Layout.Column = 4;
         loadedCount = 0;
         loadFailed = false(1, N);
         metadataFailed = false(1, N);
+        % ponytail: a series whose first file records no incidence angle is
+        % taken to record none (two failed h5reads per file otherwise);
+        % read every file if mixed series ever turn up.
+        ang_info = nan(N, 1);
+        hasFileAngle = isfinite(readPGIXSFileIncidence(files{1}));
 
         if ParallelCom == 1
             Stack_local = param.Stack; loginfo1 = zeros(1,N,'single'); loginfoBC = zeros(1,N,'single');
@@ -631,6 +636,8 @@ btnSvX4.Layout.Column = 4;
                 normCounts = normalizePGIXSCounters([c1 cBC], [RefIC_local RefBC_local]);
                 loginfo1(ii) = normCounts(1); loginfoBC(ii) = normCounts(2);
                 ts_info(ii) = ts_val; temp_info(ii,:) = t_vec;
+                ang_val = NaN; if hasFileAngle, ang_val = readPGIXSFileIncidence(files{ii}); end
+                ang_info(ii) = ang_val;
             end
             param.Stack = Stack_local; param.loginfo = [loginfo1; loginfoBC]; param.timestampinfo = ts_info; param.temperatureinfo = temp_info;
             loadedCount = N;
@@ -655,6 +662,7 @@ btnSvX4.Layout.Column = 4;
                 v1 = normCounts(1); v2 = normCounts(2);
                 param.loginfo(:,ii) = [v1; v2];
                 param.timestampinfo(ii) = ts_val; param.temperatureinfo(ii,:) = t_vec;
+                if hasFileAngle, ang_info(ii) = readPGIXSFileIncidence(files{ii}); end
                 loadedCount = ii;
                 
                 % [핵심 패치] UI 질식(Starvation) 방지
@@ -683,6 +691,26 @@ btnSvX4.Layout.Column = 4;
         [param.cmin, param.cmax] = computePGIXSDisplayLimits(param.data);
         GX2.cMax.Value = double(param.cmax); GX2.cMin.Value = double(param.cmin);
         param.correctionI = 0; GX2.NFile.Text = num2str(N); Auto.Nold = N; Auto.LastFile = files{N}; updateImage2();
+
+        % The angle the files record fills ai; when they differ it is an
+        % angle scan, so Change ai goes on and q-Cal uses each file's own.
+        param.fileAngles = ang_info(1:N); param.aivarFromFiles = false;
+        [fileAi, fileVary] = summarizePGIXSFileIncidence(param.fileAngles);
+        if isfinite(fileAi)
+            param.ai = fileAi; GX2.hAiDeg.Value = fileAi;
+            if isfield(param, 'SDD') && ~isempty(param.SDD) && isfinite(param.SDD) && param.SDD > 0
+                GX2.hAiPix.Value = double(round(abs(param.SDD * tand(2 * fileAi) / currentPixelSize2())));
+            end
+            if fileVary
+                GUI.hChange.Value = true;
+                GX2.hAiDeg.Tooltip = sprintf('Read from the files: %g-%g deg. q-Cal uses each file''s own angle.', ...
+                    min(param.fileAngles), max(param.fileAngles));
+            else
+                GX2.hAiDeg.Tooltip = 'Read from the loaded files (IncAngle / IAngle).';
+            end
+        else
+            GX2.hAiDeg.Tooltip = 'The loaded files record no incidence angle (or not all do): this is the typed value.';
+        end
         failedLoadCount = failureSummary.RetryFailedCount;
         if failedLoadCount > 0
             [message, titleText] = formatPGIXSFrameFailureWarning( ...
@@ -838,6 +866,13 @@ btnSvX4.Layout.Column = 4;
             AL_Kapton = load("KaptonAttLength8-30.mat");
             if strcmp(param.detector, 'Eiger4M'), AL_Si = load("SiAttLength8-30.mat"); else, AL_Si = struct(); end
             aistep = double(GX2.hAistep.Value); param.ai = double(GX2.hAiDeg.Value); param.aivar = param.ai + ((0:N-1)'.*aistep);
+            param.aivarFromFiles = false;
+            if isfield(param, 'fileAngles') && numel(param.fileAngles) == N
+                [~, param.aivarFromFiles] = summarizePGIXSFileIncidence(param.fileAngles);
+            end
+            if param.aivarFromFiles
+                param.aivar = double(param.fileAngles(:)); param.ai = param.aivar(1);
+            end
             aivar_vec = param.aivar; Kapton_R = AL_Kapton.R; if isfield(AL_Si, 'R'), Si_R = AL_Si.R; else, Si_R = []; end
             Stack_local = param.Stack; bpos = param.bpos; pixel = param.pixel; sdd = param.SDD; energy = param.Energy; dSize1 = param.dataSize(1); dSize2 = param.dataSize(2); detType = param.detector;
             Qr_stack = zeros(dSize1, dSize2, N, 'single'); Qz_stack = zeros(dSize1, dSize2, N, 'single');
@@ -1904,6 +1939,12 @@ btnSvX4.Layout.Column = 4;
             aistep = double(GX2.hAistep.Value);
             last_ai = double(param.aivar(end));
             aivar_candidates = last_ai + aistep .* (1:Nnew)';
+            if isfield(param, 'aivarFromFiles') && param.aivarFromFiles
+                % The series' angles came from its files: so do the new ones
+                % (the ramp only if one of them records none).
+                newAngles = arrayfun(@(idx) readPGIXSFileIncidence(files{idx}), new_indices(1:Nnew));
+                if all(isfinite(newAngles)), aivar_candidates = double(newAngles(:)); end
+            end
         end
 
         % --- 신규 프레임 로드 ---

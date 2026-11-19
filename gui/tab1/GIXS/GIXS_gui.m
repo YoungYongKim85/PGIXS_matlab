@@ -439,6 +439,20 @@ GX.qXlim1 = []; GX.qXlim2 = []; GX.qYlim1 = []; GX.qYlim2 = [];
         GX.hzPOS.BackgroundColor   = [1 1 1];
         
         if ~isempty(param.Count), GX.IC.Text = num2str(param.Count(1)); GX.BC.Text = num2str(param.Count(2)); end
+
+        % The incidence angle the file records fills ai; a file without
+        % one leaves the typed angle alone.
+        fileAi = readPGIXSFileIncidence(XSImage);
+        if isfinite(fileAi)
+            param.ai = fileAi; GX.hAiDeg.Value = fileAi;
+            sddNow = double(GX.hSDD.Value);
+            if isfinite(sddNow) && sddNow > 0
+                GX.hAiPix.Value = double(abs(sddNow * tand(2 * fileAi) / currentPixelSize()));
+            end
+            GX.hAiDeg.Tooltip = 'Read from the loaded file (IncAngle / IAngle).';
+        else
+            GX.hAiDeg.Tooltip = 'The loaded file records no incidence angle: this is the typed value.';
+        end
         
         if isfield(param, 'Expinfo') && param.Expinfo == 1 && isfield(param, 'bpos')
             param.HD = single(1:param.dataSize(2)) - param.bpos(1);

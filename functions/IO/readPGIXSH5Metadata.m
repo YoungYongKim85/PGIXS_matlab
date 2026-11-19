@@ -43,7 +43,7 @@ function meta = readPGIXSH5Metadata(filePath, mode, referenceTimestamp)
             meta.Temperature(1) = readFirstAvailable(filePath, {'LowTemp1'});
             meta.Temperature(2) = readFirstAvailable(filePath, {'LowTemp2'});
         case 'Angle'
-            meta.Temperature(1) = readFirstAvailable(filePath, {'IncAngle'});
+            meta.Temperature(1) = readFirstAvailable(filePath, {'IncAngle', 'IAngle'});
     end
 end
 

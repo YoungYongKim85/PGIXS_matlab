@@ -57,6 +57,7 @@ function run_pgixs_core_tests()
     testNormalizationValue();
     testCounterNormalization();
     testScaleFactorSanitizer();
+    testFileIncidence();
     testNaNSumPreservation();
     testExperimentXAxis();
     testProgressMessageFormatter();
@@ -412,6 +413,36 @@ function testOtherUtilities()
         didThrow = strcmp(ME.identifier, 'PGIXS:SpeOpenFailed');
     end
     assert(didThrow, 'speopen should report missing SPE files with a PGIXS identifier.');
+end
+
+function testFileIncidence()
+    names = {'IncAngle', 'IAngle', ''};
+    expected = [0.12, 0.15, NaN];
+    for ii = 1:numel(names)
+        h5File = [tempname, '.h5'];
+        cleanup = onCleanup(@() delete(h5File)); %#ok<NASGU>
+        h5create(h5File, '/entry/instrument/user/params/Counter1', 1, 'Datatype', 'single');
+        h5write(h5File, '/entry/instrument/user/params/Counter1', single(10));
+        if ~isempty(names{ii})
+            h5create(h5File, ['/entry/instrument/user/params/', names{ii}], 1, 'Datatype', 'single');
+            h5write(h5File, ['/entry/instrument/user/params/', names{ii}], single(expected(ii)));
+        end
+        ai = readPGIXSFileIncidence(h5File);
+        assert(isequaln(ai, expected(ii)), sprintf('File incidence mismatch for "%s": %g', names{ii}, ai));
+        meta = readPGIXSH5Metadata(h5File, 'Angle');
+        assert(isequaln(meta.Temperature(1), single(expected(ii))), 'Angle mode should read IncAngle or IAngle.');
+        clear cleanup;
+    end
+    assert(isnan(readPGIXSFileIncidence([tempname, '.tif'])), 'A file that is not H5 records no angle.');
+
+    [ai, vary] = summarizePGIXSFileIncidence([0.2 0.2 0.2]);
+    assert(ai == 0.2 && ~vary, 'One shared angle fills ai without Change ai.');
+    [ai, vary] = summarizePGIXSFileIncidence([0.10 0.14 0.30]);
+    assert(ai == 0.10 && vary, 'Differing angles are an angle scan.');
+    [ai, vary] = summarizePGIXSFileIncidence([0.3 NaN 0.5]);
+    assert(isnan(ai) && ~vary, 'A partly-logged series keeps the typed angle.');
+    [ai, vary] = summarizePGIXSFileIncidence([]);
+    assert(isnan(ai) && ~vary, 'No files, no angle.');
 end
 
 function testH5Metadata(repoRoot)
