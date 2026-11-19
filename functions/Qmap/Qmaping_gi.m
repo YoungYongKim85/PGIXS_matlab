@@ -62,7 +62,13 @@ function [Qy,Qr,Qz,Q,tth2d,af2d] = Qmaping_gi(detec_y,detec_z,BeamP,pixel,SDD,k0
     clear qx qz
 
     % 결과 계산
-    Qr = sign(Qy) .* hypot(Qx, Qy);
+    % Qr의 부호는 Qy를 따르되, Qy = 0(빔 중심 Y가 정수 픽셀일 때의 빔 열)은 +로
+    % 둔다. sign(0) = 0을 그대로 쓰면 그 열의 Qr이 0이 되어 Qx가 사라지고,
+    % Qr에서 만드는 |Q|도 그 열에서만 낮게 나왔다(검출기 끝에서 4.7%).
+    % 90도 accumulation cut이 q축을 바로 이 열에서 읽는다.
+    sgn = sign(Qy);
+    sgn(sgn == 0) = 1;
+    Qr = sgn .* hypot(Qx, Qy);
     Q  = hypot(Qr, Qz);
     
     clear Qx

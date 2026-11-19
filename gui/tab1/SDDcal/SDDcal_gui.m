@@ -671,9 +671,12 @@ param = struct(); param.data = []; param.hROI = [];
             try [pL, ~, ~] = fitPGIXSGaussianPeak(xL, profL, targetRadius); catch, pL = NaN; end
             try [pD, ~, ~] = fitPGIXSGaussianPeak(xD, profD', targetRadius); catch, pD = NaN; end
             try [pU, ~, ~] = fitPGIXSGaussianPeak(xU, profU', targetRadius); catch, pU = NaN; end
+            % 양쪽 fit은 반올림한 픽셀(iCol, iRow)에서 잰 거리이므로, 그 픽셀에
+            % 반차를 더한 것이 중심이다. 반올림 전 중심에 더하면 최대 0.5픽셀
+            % 어긋나고, 실제 중심이 정수 픽셀일 때만 수렴했다.
             shiftY = 0; shiftZ = 0; countY = 0; countZ = 0;
-            if ~isnan(pR) && ~isnan(pL), shiftY = (pR - pL) / 2; countY = 1; end
-            if ~isnan(pD) && ~isnan(pU), shiftZ = (pD - pU) / 2; countZ = 1; end
+            if ~isnan(pR) && ~isnan(pL), shiftY = iCol + (pR - pL) / 2 - curCY; countY = 1; end
+            if ~isnan(pD) && ~isnan(pU), shiftZ = iRow + (pD - pU) / 2 - curCZ; countZ = 1; end
             if countY == 0 && countZ == 0, break; end 
             curCY = curCY + shiftY * 0.8; curCZ = curCZ + shiftZ * 0.8;
             if abs(shiftY) < 0.05 && abs(shiftZ) < 0.05, break; end

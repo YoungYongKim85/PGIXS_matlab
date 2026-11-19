@@ -1656,6 +1656,12 @@ function testQMappingAndCorrections()
     assert(isa(qRgi, 'single') && isa(qYgi, 'single') && isa(qZgi, 'single'), ...
         'GIXS Q outputs should be single precision.');
 
+    % |Q| on the beam column (beam Y on a whole pixel) must match its
+    % neighbours: sign(Qy) = 0 there used to drop Qx from it.
+    [~, ~, ~, qCol] = Qmaping_gi(200, 2000, [100 1900], single(0.075), single(200), single(2*pi), single(0.15));
+    assert(abs(double(qCol(1, 100)) - double(qCol(1, 99))) < 1e-3 * double(qCol(1, 99)), ...
+        'GIXS |Q| should be continuous across the beam column.');
+
     solAng = SolidAngle(detY, detZ, beamPos, pixel, sdd);
     pol = Polarization(detY, detZ, beamPos, pixel, sdd);
     assert(isequal(size(solAng), [detZ detY]) && isequal(size(pol), [detZ detY]), ...

@@ -635,8 +635,10 @@ btnSaveX4 = uibutton(cg4, 'Text', 'Save X-Axis', 'ButtonPushedFcn', @SavegetX_Ca
             uialert(GUI.main, 'No background frames could be loaded.', 'Background Load Failed');
             return;
         end
+        % 갭/마스크 픽셀은 이미 NaN이다. 측정된 0은 실제 카운트이므로 NaN으로
+        % 바꾸지 않는다: 바꾸면 카운트가 낮은 배경의 평균이 높게 치우친다
+        % (평균 0.3 카운트가 1.16으로 읽힘).
         param.bkg = runSum ./ loadedCount;
-        param.bkg(param.bkg==0) = nan;
         if metadataCount > 0
             cntAvg = cntSum ./ metadataCount;
         else
